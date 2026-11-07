@@ -10,6 +10,7 @@ import {
   signInWithEmailAndPassword,
   updatePassword,
 } from "firebase/auth"
+import posthog from "posthog-js"
 
 function Brand() {
   return (
@@ -119,6 +120,7 @@ function VerifyEmailContent() {
             }
           } catch {}
           sessionStorage.removeItem("novella:pending-signup")
+          posthog.capture("user_signed_up", { method: "email" })
         }
       }
 

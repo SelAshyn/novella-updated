@@ -17,6 +17,7 @@ import {
 
 import { PageTitle } from "@/components/dashboard/app-shell";
 import { useAuth } from "@/components/landing/auth-provider";
+import posthog from "posthog-js";
 
 type ReportType = "glitch" | "feedback" | "feature" | "other";
 type SeverityLevel = "low" | "medium" | "high" | "critical";
@@ -232,6 +233,12 @@ export default function ReportPage() {
         throw new Error(data?.error || `Submission failed with status ${res.status}`);
       }
 
+      posthog.capture("feedback_submitted", {
+        feedback_type: type,
+        affected_area: area,
+        ...(type === "glitch" ? { severity } : {}),
+        includes_device_diagnostics: includeDevice,
+      });
       setSubmittedSuccess(true);
       setStatusMsg({
         type: "ok",

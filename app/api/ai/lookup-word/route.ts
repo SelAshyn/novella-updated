@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { SeverityNumber } from "@opentelemetry/api-logs";
+import { after, NextRequest, NextResponse } from "next/server";
+import { loggerProvider, posthogLogger } from "@/instrumentation";
 import { auth } from "@/lib/firebase-admin";
 import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { cacheGet, cacheSet } from "@/lib/redis";
+import { captureAiGeneration } from "@/lib/posthog-ai";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL = "openai/gpt-oss-20b";
@@ -19,6 +22,23 @@ function sanitizeText(str: unknown, maxLen: number): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, maxLen);
+}
+
+function emitLookupLog(
+  severityNumber: SeverityNumber,
+  attributes: Record<string, string | number | boolean>
+): void {
+  if (!posthogLogger || !loggerProvider) return;
+
+  posthogLogger.emit({
+    body: "AI vocabulary lookup completed",
+    severityNumber,
+    attributes,
+  });
+
+  after(async () => {
+    await loggerProvider.forceFlush().catch(() => undefined);
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -83,6 +103,12 @@ export async function POST(req: NextRequest) {
   const cacheKey = `ai:word:${word.toLowerCase()}:${bookContext.toLowerCase()}`;
   const cached = await cacheGet<any>(cacheKey);
   if (cached) {
+    emitLookupLog(SeverityNumber.INFO, {
+      event: "ai_lookup_completed",
+      outcome: "cache_hit",
+      source: "redis",
+      http_status: 200,
+    });
     return NextResponse.json(cached);
   }
 
@@ -109,6 +135,13 @@ If "${word}" is NOT a real English word, respond with:
 If "${word}" IS a real English word, respond with:
 {"valid":true,"ipa":"/pronunciation/","meaning":"Clear one-sentence definition","simpleExample":"Short beginner sentence","complexExample":"Sophisticated literary sentence"}`;
 
+  const messages = [
+    { role: "system" as const, content: systemPrompt },
+    { role: "user" as const, content: userPrompt },
+  ];
+  const traceId = crypto.randomUUID();
+  const startedAt = performance.now();
+
   // ── 6. Groq API Request ───────────────────────────────────────────────────
   try {
     const groqRes = await fetch(GROQ_API_URL, {
@@ -119,10 +152,7 @@ If "${word}" IS a real English word, respond with:
       },
       body: JSON.stringify({
         model: GROQ_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        messages,
         temperature: 0.2,
         max_tokens: 350,
       }),
@@ -131,6 +161,27 @@ If "${word}" IS a real English word, respond with:
     if (!groqRes.ok) {
       const errBody = await groqRes.json().catch(() => ({}));
       console.error("[lookup-word] Groq error:", groqRes.status, errBody);
+      await captureAiGeneration({
+        distinctId: decodedToken.uid,
+        traceId,
+        model: GROQ_MODEL,
+        provider: "groq",
+        input: messages,
+        latency: (performance.now() - startedAt) / 1000,
+        httpStatus: groqRes.status,
+        isError: true,
+        error: `HTTP ${groqRes.status}`,
+        temperature: 0.2,
+        maxTokens: 350,
+      });
+      emitLookupLog(SeverityNumber.ERROR, {
+        event: "ai_lookup_completed",
+        outcome: "upstream_error",
+        provider: "groq",
+        model: GROQ_MODEL,
+        upstream_status: groqRes.status,
+        http_status: 502,
+      });
       return NextResponse.json(
         { error: "AI lookup failed. Please try again." },
         { status: 502 }
@@ -139,6 +190,22 @@ If "${word}" IS a real English word, respond with:
 
     const groqData = await groqRes.json();
     const raw = groqData.choices?.[0]?.message?.content?.trim() ?? "";
+
+    await captureAiGeneration({
+      distinctId: decodedToken.uid,
+      traceId,
+      model: GROQ_MODEL,
+      provider: "groq",
+      input: messages,
+      outputChoices: [{ role: "assistant", content: raw }],
+      inputTokens: groqData.usage?.prompt_tokens,
+      outputTokens: groqData.usage?.completion_tokens,
+      latency: (performance.now() - startedAt) / 1000,
+      httpStatus: groqRes.status,
+      temperature: 0.2,
+      maxTokens: 350,
+      stopReason: groqData.choices?.[0]?.finish_reason,
+    });
 
     // ── 7. Parse & Validate Model Output ────────────────────────────────────
     let result: any;
@@ -178,9 +245,37 @@ If "${word}" IS a real English word, respond with:
     // Cache valid definitions for 7 days
     await cacheSet(cacheKey, responseData, 7 * 24 * 3600);
 
+    emitLookupLog(SeverityNumber.INFO, {
+      event: "ai_lookup_completed",
+      outcome: "success",
+      provider: "groq",
+      model: GROQ_MODEL,
+      http_status: 200,
+      duration_ms: Math.round(performance.now() - startedAt),
+    });
     return NextResponse.json(responseData);
   } catch (error) {
+    await captureAiGeneration({
+      distinctId: decodedToken.uid,
+      traceId,
+      model: GROQ_MODEL,
+      provider: "groq",
+      input: messages,
+      latency: (performance.now() - startedAt) / 1000,
+      isError: true,
+      error: error instanceof Error ? error.name : "unknown_error",
+      temperature: 0.2,
+      maxTokens: 350,
+    });
     console.error("[lookup-word] error:", error);
+    emitLookupLog(SeverityNumber.ERROR, {
+      event: "ai_lookup_completed",
+      outcome: "request_error",
+      provider: "groq",
+      model: GROQ_MODEL,
+      error_type: error instanceof Error ? error.name : "unknown_error",
+      http_status: 500,
+    });
     return NextResponse.json(
       { error: "AI lookup failed. Please try again." },
       { status: 500 }

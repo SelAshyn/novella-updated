@@ -6,6 +6,7 @@ import { useAuth } from "@/components/landing/auth-provider"
 import {
   BookOpen, Check, Copy, List, Plus, Trash2, Users, X, AlertCircle, LogOut,
 } from "lucide-react"
+import posthog from "posthog-js"
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -133,6 +134,7 @@ export default function ClassPage() {
       const d = await res.json().catch(() => ({}))
       throw new Error(d.error || "Failed to join class")
     }
+    posthog.capture("class_joined")
     setShowJoinDialog(false)
     setSelectedClass(null)
     fetchClasses()
@@ -149,6 +151,7 @@ export default function ClassPage() {
       throw new Error(d.error || "Failed to create class")
     }
     const newClass = await res.json()
+    posthog.capture("class_created", { class_id: newClass.id })
     setShowCreateDialog(false)
     setClasses((prev) => [...prev, newClass])
     setSelectedClass(newClass)
@@ -200,6 +203,11 @@ export default function ClassPage() {
     })
     if (!res.ok) throw new Error("Failed to add assignment")
     const { assignment } = await res.json()
+    posthog.capture("assignment_created", {
+      class_id: classId,
+      assignment_id: assignment.id,
+      has_due_date: Boolean(assignment.dueDate),
+    })
     setSelectedClass((prev) =>
       prev?.id === classId
         ? { ...prev, assignments: [{ ...assignment, dueDate: assignment.dueDate?.toISOString?.() ?? assignment.dueDate }, ...prev.assignments] }

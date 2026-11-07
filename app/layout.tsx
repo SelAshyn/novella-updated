@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Plus_Jakarta_Sans, Newsreader, JetBrains_Mono } from "next/font/google"
-
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import Providers from "@/components/landing/providers"
@@ -54,6 +55,8 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

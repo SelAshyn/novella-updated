@@ -12,6 +12,7 @@ import { FirebaseError } from "firebase/app"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/landing/auth-provider"
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
+import posthog from "posthog-js"
 
 const reading = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], weight: ["400", "500", "600"], display: "swap" })
 const body = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], display: "swap" })
@@ -374,6 +375,7 @@ export default function AuthPage() {
           return
         }
 
+        posthog.capture("user_signed_in", { method: "email" })
         router.push("/dashboard")
       }
     } catch (error) {

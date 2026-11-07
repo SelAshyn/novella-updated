@@ -5,6 +5,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { Plus, Trash2, X, Upload, BookOpen, Target, Sparkles } from "lucide-react";
 import Image from "next/image";
+import posthog from "posthog-js";
 
 import { PageTitle } from "@/components/dashboard/app-shell";
 import { useBooks } from "@/hooks/useBooks";
@@ -47,6 +48,12 @@ export default function Library() {
         status: form.status,
         coverImageUrl: form.coverUrl || undefined,
       });
+      posthog.capture("book_added", {
+        initial_status: form.status,
+        total_pages: parseInt(form.totalPages),
+        has_cover: Boolean(form.coverUrl),
+        has_due_date: Boolean(form.dueDate),
+      });
       setForm({ title: "", author: "", totalPages: "", dueDate: "", status: "READING", coverUrl: "" });
       setShowAdd(false);
     } catch {
@@ -61,6 +68,7 @@ export default function Library() {
     try {
       setDeleting(id);
       await deleteBook(id);
+      posthog.capture("book_removed", { book_id: id });
     } finally {
       setDeleting(null);
     }
@@ -68,6 +76,7 @@ export default function Library() {
 
   async function handleStatusChange(id: string, status: BookStatus) {
     await updateBook(id, { status });
+    posthog.capture("book_status_updated", { book_id: id, status });
   }
 
   if (loading) {

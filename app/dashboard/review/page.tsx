@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle2, ArrowRight, BookOpen, Sparkles, Volume2 } fr
 
 import { PageTitle } from "@/components/dashboard/app-shell";
 import { useAuth } from "@/components/landing/auth-provider";
+import posthog from "posthog-js";
 
 interface ReviewCard {
   id: string;
@@ -68,13 +69,22 @@ export default function Review() {
     if (!user) return;
     try {
       const headers = await authHeaders(user);
-      await fetch(`/api/vocabulary/${card.id}/review`, {
+      const res = await fetch(`/api/vocabulary/${card.id}/review`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({ interval }),
       });
+      if (!res.ok) throw new Error("Failed to save review grade");
+      posthog.capture("review_card_graded", {
+        review_interval_days: interval,
+        cards_remaining: cards.length - i - 1,
+      });
+      if (i + 1 === cards.length) {
+        posthog.capture("review_completed", { items_reviewed: cards.length });
+      }
     } catch (err) {
       console.error("[review] grade error:", err);
+      return;
     }
     setShown(false);
     setI((prev) => prev + 1);

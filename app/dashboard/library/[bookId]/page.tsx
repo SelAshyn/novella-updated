@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertCircle, ArrowLeft, Loader2, Plus, Quote, Sparkles, Trash2, Volume2, X, BookOpen, Bookmark } from "lucide-react";
 import { format } from "date-fns";
+import posthog from "posthog-js";
 
 import { PageTitle } from "@/components/dashboard/app-shell";
 import { useApi } from "@/hooks/useApi";
@@ -153,6 +154,11 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
         currentPage: parseInt(currentPage),
       });
       setBook((b) => b ? { ...b, currentPage: updated.book.currentPage } : b);
+      posthog.capture("reading_progress_updated", {
+        book_id: book.id,
+        current_page: updated.book.currentPage,
+        total_pages: book.totalPages,
+      });
     } finally {
       setSavingProgress(false);
     }
@@ -172,6 +178,11 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
         pageNumber: parseInt(wordForm.pageNumber),
       });
       setWords((prev) => [...prev, data.card]);
+      posthog.capture("vocabulary_added", {
+        book_id: bookId,
+        vocabulary_id: data.card.id,
+        lookup_source: wordStatus === "filled" ? "ai" : "manual",
+      });
       setWordForm({ word: "", ipa: "", meaning: "", simpleExample: "", complexExample: "", pageNumber: "" });
       setWordStatus("idle");
       lastFetchedWord.current = "";
@@ -197,6 +208,11 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
         pageNumber: parseInt(quoteForm.pageNumber),
       });
       setQuotes((prev) => [...prev, data.quote]);
+      posthog.capture("quote_saved", {
+        book_id: bookId,
+        quote_id: data.quote.id,
+        page_number: data.quote.pageNumber,
+      });
       setQuoteForm({ text: "", pageNumber: "" });
       setShowAddQuote(false);
     } finally {

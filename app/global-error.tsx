@@ -1,11 +1,12 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+import posthog from "posthog-js";
 import { useEffect } from "react";
 
 /**
  * global-error.tsx catches unhandled errors in the root layout and reports
- * them to Sentry. It replaces the entire page, so it must include <html> and
+ * them to Sentry and PostHog. It replaces the entire page, so it must include <html> and
  * <body> tags.
  */
 export default function GlobalError({
@@ -17,6 +18,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     Sentry.captureException(error);
+    posthog.captureException(error);
   }, [error]);
 
   return (
