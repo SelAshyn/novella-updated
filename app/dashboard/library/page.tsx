@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Plus, Trash2, X, Upload, BookOpen, Target, Sparkles } from "lucide-react";
@@ -12,26 +12,11 @@ import { BookStatus } from "@/lib/types";
 import { getPlanLimits } from "@/lib/plans";
 import { CoverUpload } from "@/components/book/cover-upload";
 
-interface UserPlan {
-  plan: string;
-  booksCount: number;
-  vocabularyCount: number;
-}
-
 export default function Library() {
   const { books, loading, addBook, updateBook, deleteBook } = useBooks();
   const [showAdd, setShowAdd] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [editingCover, setEditingCover] = useState<string | null>(null);
-
-  // Fetch user plan data
-  useEffect(() => {
-    fetch("/api/user/plan")
-      .then((r) => r.json())
-      .then((data) => setUserPlan(data))
-      .catch(console.error);
-  }, [books.length]);
 
   // Add book form state
   const [form, setForm] = useState({
@@ -96,12 +81,10 @@ export default function Library() {
     );
   }
 
-  const limits = userPlan ? getPlanLimits(userPlan.plan) : null;
+  const limits = getPlanLimits("free");
   const booksCount = books.length;
-  const canAddMore = !limits || booksCount < limits.maxBooks;
-  const usageText = limits && limits.maxBooks !== Infinity
-    ? `${booksCount} of ${limits.maxBooks} books`
-    : `${booksCount} book${booksCount !== 1 ? "s" : ""}`;
+  const canAddMore = booksCount < limits.maxBooks;
+  const usageText = `${booksCount} of ${limits.maxBooks} books`;
 
   return (
     <>

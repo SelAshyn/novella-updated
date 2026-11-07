@@ -7,14 +7,7 @@ import { PageTitle } from "@/components/dashboard/app-shell";
 import { useVocabulary } from "@/hooks/useVocabulary";
 import { useBooks } from "@/hooks/useBooks";
 import { useAuth } from "@/components/landing/auth-provider";
-import { useApi } from "@/hooks/useApi";
 import { getPlanLimits } from "@/lib/plans";
-
-interface UserPlan {
-  plan: string;
-  booksCount: number;
-  vocabularyCount: number;
-}
 
 interface AIResult {
   valid: boolean;
@@ -37,18 +30,9 @@ export default function Vocabulary() {
   const { cards, loading, error: vocabError, addCard, deleteCard } = useVocabulary();
   const { books } = useBooks();
   const { user } = useAuth();
-  const api = useApi();
   const [q, setQ] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
-
-  useEffect(() => {
-    api.get("/api/user/plan")
-      .then((data: UserPlan) => setUserPlan(data))
-      .catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards.length]);
 
   const [form, setForm] = useState({
     bookId: "",
@@ -294,13 +278,10 @@ export default function Vocabulary() {
     );
   }
 
-  const limits = userPlan ? getPlanLimits(userPlan.plan) : null;
+  const limits = getPlanLimits("free");
   const wordsCount = cards.length;
-  const canAddMore = !limits || wordsCount < limits.maxVocabularyWords;
-  const usageText =
-    limits && limits.maxVocabularyWords !== Infinity
-      ? `${wordsCount} of ${limits.maxVocabularyWords} words saved`
-      : `${wordsCount} word${wordsCount !== 1 ? "s" : ""} saved`;
+  const canAddMore = wordsCount < limits.maxVocabularyWords;
+  const usageText = `${wordsCount} of ${limits.maxVocabularyWords} words saved`;
 
   function parseExample(raw: string) {
     const parts = raw.split("|||");
