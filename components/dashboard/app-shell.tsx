@@ -32,6 +32,7 @@ const nav = [
 ] as const;
 
 interface UserStats {
+  displayName: string | null;
   currentStreak: number;
   longestStreak: number;
   streakFreezes: number;
@@ -57,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
 
-  const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
+  const displayName = user?.displayName || stats?.displayName || user?.email?.split("@")[0] || "User";
   const initial = displayName[0].toUpperCase();
 
   useEffect(() => {

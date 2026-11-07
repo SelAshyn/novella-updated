@@ -490,127 +490,133 @@ export function getOTPEmailTemplate(params: {
   otp: string;
 }): { html: string; text: string } {
   const { userName, otp } = params;
-
-  // Split OTP into individual digits for per-digit boxes
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://novella-library.vercel.app';
   const digits = otp.split('');
 
-  const html = `
-<!DOCTYPE html>
+  // Inline SVG logo badge (works in all email clients)
+  const logoBadgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 80 80" role="img" aria-label="Novella" style="display:block;">
+    <rect fill="#1c1917" width="80" height="80" rx="22"/>
+    <g stroke="#fbf9f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(22,22) scale(1.5)">
+      <path d="M12 5v16"/>
+      <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/>
+    </g>
+  </svg>`;
+
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your login code - Novella</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4ff; color: #111827; }
-    .outer { padding: 48px 16px; }
-    .container { max-width: 540px; margin: 0 auto; }
-    .card { background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 24px rgba(102,126,234,0.10), 0 1px 4px rgba(0,0,0,0.06); }
-
-    /* Header */
-    .header { background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%); padding: 40px 32px 36px; text-align: center; position: relative; }
-    .header-icon { font-size: 42px; display: block; margin-bottom: 10px; }
-    .brand { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.5px; font-family: Georgia, 'Times New Roman', serif; margin: 0; }
-    .header-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
-
-    /* Body */
-    .body { padding: 44px 40px 36px; }
-    .greeting { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 10px; }
-    .body-text { font-size: 15px; color: #64748b; line-height: 1.65; margin: 0 0 32px; }
-
-    /* OTP digits */
-    .otp-wrap { text-align: center; margin: 0 0 36px; }
-    .otp-digits { display: inline-flex; gap: 10px; justify-content: center; }
-    .otp-digit {
-      width: 56px; height: 68px;
-      background: #f8faff;
-      border: 2px solid #c7d2fe;
-      border-radius: 12px;
-      font-size: 32px; font-weight: 800;
-      color: #4f46e5;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      display: inline-flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(79,70,229,0.08);
-      line-height: 1;
-    }
-    .otp-expiry { font-size: 13px; color: #94a3b8; margin-top: 14px; }
-
-    /* Alert box */
-    .alert { display: flex; align-items: flex-start; gap: 12px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 16px 18px; margin: 0 0 28px; }
-    .alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-    .alert-text { font-size: 13.5px; color: #92400e; line-height: 1.55; margin: 0; }
-
-    .ignore-note { font-size: 13px; color: #94a3b8; line-height: 1.6; margin: 0; }
-
-    /* Footer */
-    .footer { background: #f8faff; border-top: 1px solid #e8edf8; padding: 24px 32px; text-align: center; }
-    .footer-brand { font-size: 15px; font-weight: 700; color: #4f46e5; font-family: Georgia, serif; }
-    .footer-links { margin: 10px 0 0; font-size: 13px; color: #94a3b8; }
-    .footer-links a { color: #6366f1; text-decoration: none; }
-    .footer-copy { font-size: 12px; color: #c4cad8; margin: 8px 0 0; }
-  </style>
+  <title>Your verification code — Novella</title>
 </head>
-<body>
-  <div class="outer">
-    <div class="container">
-      <div class="card">
+<body style="margin:0;padding:0;background-color:#f5f3ef;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f5f3ef;padding:48px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:520px;">
 
-        <div class="header">
-          <span class="header-icon">📚</span>
-          <p class="brand">Novella</p>
-          <p class="header-sub">Email Verification</p>
-        </div>
+          <!-- Logo header -->
+          <tr>
+            <td align="center" style="padding-bottom:28px;">
+              <table cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td style="vertical-align:middle;padding-right:12px;">${logoBadgeSvg}</td>
+                  <td style="vertical-align:middle;">
+                    <span style="font-family:Georgia,'Times New Roman',Cambria,serif;font-size:28px;font-weight:700;color:#1c1917;letter-spacing:-0.5px;">Novella</span><br>
+                    <span style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#78716c;letter-spacing:2px;text-transform:uppercase;">Reading Notebook</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-        <div class="body">
-          <p class="greeting">Here's your login code${userName ? `, ${userName}` : ''}</p>
-          <p class="body-text">
-            Enter the code below in the Novella app to verify your identity. This code is valid for <strong>10&nbsp;minutes</strong>.
-          </p>
+          <!-- Card -->
+          <tr>
+            <td style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07),0 1px 4px rgba(0,0,0,0.04);">
 
-          <div class="otp-wrap">
-            <div class="otp-digits">
-              ${digits.map(d => `<span class="otp-digit">${d}</span>`).join('\n              ')}
-            </div>
-            <p class="otp-expiry">⏱ Expires in 10 minutes</p>
-          </div>
+              <!-- Amber top bar -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr><td style="height:5px;background:linear-gradient(90deg,#f59e0b,#d97706);border-radius:20px 20px 0 0;font-size:0;">&nbsp;</td></tr>
+              </table>
 
-          <div class="alert">
-            <span class="alert-icon">🔒</span>
-            <p class="alert-text"><strong>Never share this code.</strong> Novella staff will never ask for it. If you didn't request this code, you can safely ignore this email — your account remains secure.</p>
-          </div>
+              <!-- Body -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:40px 40px 32px;">
+                <tr>
+                  <td>
+                    <p style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#1c1917;line-height:1.3;">
+                      ${userName ? `Hey ${userName} 👋` : 'Hey there 👋'}
+                    </p>
+                    <p style="margin:0 0 32px;font-size:15px;color:#57534e;line-height:1.7;">
+                      Here's your Novella verification code. Enter it in the app to confirm your email address. It's valid for <strong style="color:#1c1917;">10 minutes</strong>.
+                    </p>
 
-          <p class="ignore-note">Not expecting this email? You can safely ignore it. No action is needed.</p>
-        </div>
+                    <!-- OTP digits -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td align="center">
+                          <table cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                              ${digits.map(d => `<td style="padding:0 5px;"><div style="width:52px;height:64px;background:#fefce8;border:2px solid #fcd34d;border-radius:12px;font-family:'Courier New','Lucida Console',monospace;font-size:30px;font-weight:800;color:#92400e;text-align:center;line-height:64px;">${d}</div></td>`).join('')}
+                            </tr>
+                          </table>
+                          <p style="margin:12px 0 0;font-size:12px;color:#a8a29e;font-family:'Courier New',monospace;">⏱ Expires in 10 minutes</p>
+                        </td>
+                      </tr>
+                    </table>
 
-        <div class="footer">
-          <p class="footer-brand">📚 Novella</p>
-          <p class="footer-links">
-            <a href="https://novella.app">novella.app</a> &nbsp;·&nbsp;
-            <a href="https://novella.app/support">Support</a>
-          </p>
-          <p class="footer-copy">© ${new Date().getFullYear()} Novella. All rights reserved.</p>
-        </div>
+                    <!-- Security note -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:28px;">
+                      <tr>
+                        <td style="background:#fef9c3;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:10px;padding:14px 16px;">
+                          <p style="margin:0;font-size:13px;color:#78350f;line-height:1.6;">
+                            🔒 <strong>Never share this code.</strong> Novella staff will never ask for it. If you didn't request this, your account is safe — just ignore this email.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
 
-      </div>
-    </div>
-  </div>
+                    <p style="margin:0;font-size:13px;color:#a8a29e;line-height:1.6;">
+                      Not sure why you got this? You can safely ignore it.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Footer -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-top:1px solid #f0ece6;padding:20px 40px 24px;background:#fafaf9;border-radius:0 0 20px 20px;">
+                <tr>
+                  <td align="center">
+                    <p style="margin:0 0 6px;font-family:Georgia,serif;font-size:14px;font-weight:700;color:#1c1917;">Novella</p>
+                    <p style="margin:0 0 4px;font-size:12px;color:#a8a29e;">
+                      <a href="${appUrl}" style="color:#d97706;text-decoration:none;">${appUrl.replace(/^https?:\/\//, '')}</a>
+                    </p>
+                    <p style="margin:0;font-size:11px;color:#c4bdb7;">© ${new Date().getFullYear()} Novella. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
-</html>
-  `.trim();
+</html>`;
 
   const text = `
-Your Novella login code${userName ? ` — ${userName}` : ''}
+Your Novella verification code${userName ? ` — ${userName}` : ''}
 
-  ${otp}
+${otp}
 
-Enter this code in the app to verify your identity. It expires in 10 minutes.
+Enter this code to verify your email. It expires in 10 minutes.
 
 Never share this code with anyone. If you didn't request it, ignore this email.
 
 ---
-Novella — Your Reading Companion
-https://novella.app
+Novella — Reading Notebook
+${appUrl}
   `.trim();
 
   return { html, text };
@@ -645,128 +651,133 @@ export function getPasswordResetOTPTemplate(params: {
   otp: string;
 }): { html: string; text: string } {
   const { userName, otp } = params;
-
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://novella-library.vercel.app';
   const digits = otp.split('');
 
-  const html = `
-<!DOCTYPE html>
+  const logoBadgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 80 80" role="img" aria-label="Novella" style="display:block;">
+    <rect fill="#1c1917" width="80" height="80" rx="22"/>
+    <g stroke="#fbf9f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(22,22) scale(1.5)">
+      <path d="M12 5v16"/>
+      <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/>
+    </g>
+  </svg>`;
+
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset your password - Novella</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fff7f0; color: #111827; }
-    .outer { padding: 48px 16px; }
-    .container { max-width: 540px; margin: 0 auto; }
-    .card { background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 24px rgba(249,115,22,0.10), 0 1px 4px rgba(0,0,0,0.06); }
-
-    /* Header */
-    .header { background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); padding: 40px 32px 36px; text-align: center; }
-    .header-icon { font-size: 42px; display: block; margin-bottom: 10px; }
-    .brand { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.5px; font-family: Georgia, 'Times New Roman', serif; margin: 0; }
-    .header-sub { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
-
-    /* Body */
-    .body { padding: 44px 40px 36px; }
-    .greeting { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 10px; }
-    .body-text { font-size: 15px; color: #64748b; line-height: 1.65; margin: 0 0 32px; }
-
-    /* OTP digits */
-    .otp-wrap { text-align: center; margin: 0 0 36px; }
-    .otp-digits { display: inline-flex; gap: 10px; justify-content: center; }
-    .otp-digit {
-      width: 56px; height: 68px;
-      background: #fff7f0;
-      border: 2px solid #fed7aa;
-      border-radius: 12px;
-      font-size: 32px; font-weight: 800;
-      color: #c2410c;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      display: inline-flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(234,88,12,0.10);
-      line-height: 1;
-    }
-    .otp-expiry { font-size: 13px; color: #94a3b8; margin-top: 14px; }
-
-    /* Warning box */
-    .alert { display: flex; align-items: flex-start; gap: 12px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 12px; padding: 16px 18px; margin: 0 0 28px; }
-    .alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-    .alert-text { font-size: 13.5px; color: #991b1b; line-height: 1.55; margin: 0; }
-
-    .ignore-note { font-size: 13px; color: #94a3b8; line-height: 1.6; margin: 0; }
-
-    /* Footer */
-    .footer { background: #fff7f0; border-top: 1px solid #fed7aa; padding: 24px 32px; text-align: center; }
-    .footer-brand { font-size: 15px; font-weight: 700; color: #c2410c; font-family: Georgia, serif; }
-    .footer-links { margin: 10px 0 0; font-size: 13px; color: #94a3b8; }
-    .footer-links a { color: #ea580c; text-decoration: none; }
-    .footer-copy { font-size: 12px; color: #c4cad8; margin: 8px 0 0; }
-  </style>
+  <title>Reset your password — Novella</title>
 </head>
-<body>
-  <div class="outer">
-    <div class="container">
-      <div class="card">
+<body style="margin:0;padding:0;background-color:#f5f3ef;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f5f3ef;padding:48px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:520px;">
 
-        <div class="header">
-          <span class="header-icon">🔑</span>
-          <p class="brand">Novella</p>
-          <p class="header-sub">Password Reset</p>
-        </div>
+          <!-- Logo header -->
+          <tr>
+            <td align="center" style="padding-bottom:28px;">
+              <table cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td style="vertical-align:middle;padding-right:12px;">${logoBadgeSvg}</td>
+                  <td style="vertical-align:middle;">
+                    <span style="font-family:Georgia,'Times New Roman',Cambria,serif;font-size:28px;font-weight:700;color:#1c1917;letter-spacing:-0.5px;">Novella</span><br>
+                    <span style="font-family:'Courier New','Lucida Console',monospace;font-size:10px;color:#78716c;letter-spacing:2px;text-transform:uppercase;">Reading Notebook</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
-        <div class="body">
-          <p class="greeting">Reset your password${userName ? `, ${userName}` : ''}</p>
-          <p class="body-text">
-            We received a request to reset your Novella password. Enter the code below — it's valid for <strong>10&nbsp;minutes</strong>.
-          </p>
+          <!-- Card -->
+          <tr>
+            <td style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07),0 1px 4px rgba(0,0,0,0.04);">
 
-          <div class="otp-wrap">
-            <div class="otp-digits">
-              ${digits.map(d => `<span class="otp-digit">${d}</span>`).join('\n              ')}
-            </div>
-            <p class="otp-expiry">⏱ Expires in 10 minutes</p>
-          </div>
+              <!-- Red top bar -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr><td style="height:5px;background:linear-gradient(90deg,#ef4444,#dc2626);border-radius:20px 20px 0 0;font-size:0;">&nbsp;</td></tr>
+              </table>
 
-          <div class="alert">
-            <span class="alert-icon">⚠️</span>
-            <p class="alert-text"><strong>Never share this code.</strong> Novella staff will never ask for your reset code. If you didn't request a password reset, your account is safe — ignore this email.</p>
-          </div>
+              <!-- Body -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:40px 40px 32px;">
+                <tr>
+                  <td>
+                    <p style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#1c1917;line-height:1.3;">
+                      ${userName ? `Hi ${userName},` : 'Hi there,'}
+                    </p>
+                    <p style="margin:0 0 8px;font-size:15px;color:#57534e;line-height:1.7;">
+                      We received a request to reset your Novella password. Use the code below — it's valid for <strong style="color:#1c1917;">10 minutes</strong>.
+                    </p>
+                    <p style="margin:0 0 32px;font-size:13px;color:#a8a29e;line-height:1.6;">
+                      If you didn't request a password reset, you can safely ignore this email. Your password will not change.
+                    </p>
 
-          <p class="ignore-note">Didn't request this? No action needed — your password remains unchanged.</p>
-        </div>
+                    <!-- OTP digits -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:32px;">
+                      <tr>
+                        <td align="center">
+                          <table cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                              ${digits.map(d => `<td style="padding:0 5px;"><div style="width:52px;height:64px;background:#fef2f2;border:2px solid #fca5a5;border-radius:12px;font-family:'Courier New','Lucida Console',monospace;font-size:30px;font-weight:800;color:#991b1b;text-align:center;line-height:64px;">${d}</div></td>`).join('')}
+                            </tr>
+                          </table>
+                          <p style="margin:12px 0 0;font-size:12px;color:#a8a29e;font-family:'Courier New',monospace;">⏱ Expires in 10 minutes</p>
+                        </td>
+                      </tr>
+                    </table>
 
-        <div class="footer">
-          <p class="footer-brand">📚 Novella</p>
-          <p class="footer-links">
-            <a href="https://novella.app">novella.app</a> &nbsp;·&nbsp;
-            <a href="https://novella.app/support">Support</a>
-          </p>
-          <p class="footer-copy">© ${new Date().getFullYear()} Novella. All rights reserved.</p>
-        </div>
+                    <!-- Warning note -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                      <tr>
+                        <td style="background:#fef2f2;border:1px solid #fca5a5;border-left:4px solid #ef4444;border-radius:10px;padding:14px 16px;">
+                          <p style="margin:0;font-size:13px;color:#991b1b;line-height:1.6;">
+                            ⚠️ <strong>Never share this code.</strong> Novella staff will never ask for your reset code. If you didn't request this, your password remains unchanged.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-      </div>
-    </div>
-  </div>
+              <!-- Footer -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-top:1px solid #f0ece6;padding:20px 40px 24px;background:#fafaf9;border-radius:0 0 20px 20px;">
+                <tr>
+                  <td align="center">
+                    <p style="margin:0 0 6px;font-family:Georgia,serif;font-size:14px;font-weight:700;color:#1c1917;">Novella</p>
+                    <p style="margin:0 0 4px;font-size:12px;color:#a8a29e;">
+                      <a href="${appUrl}" style="color:#d97706;text-decoration:none;">${appUrl.replace(/^https?:\/\//, '')}</a>
+                    </p>
+                    <p style="margin:0;font-size:11px;color:#c4bdb7;">© ${new Date().getFullYear()} Novella. All rights reserved.</p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
-</html>
-  `.trim();
+</html>`;
 
   const text = `
 Reset your Novella password${userName ? ` — ${userName}` : ''}
 
 Your password reset code is:
 
-  ${otp}
+${otp}
 
 This code expires in 10 minutes.
 
 Never share this code with anyone. If you didn't request a password reset, ignore this email — your account is safe.
 
 ---
-Novella — Your Reading Companion
-https://novella.app
+Novella — Reading Notebook
+${appUrl}
   `.trim();
 
   return { html, text };

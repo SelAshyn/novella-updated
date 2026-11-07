@@ -43,8 +43,19 @@ export default function SettingsPage() {
   const currentTheme = mounted ? (resolvedTheme === "dark" ? "dark" : "light") : "light";
 
   useEffect(() => {
-    if (user) setDisplayName(user.displayName ?? "");
-  }, [user]);
+    if (!user) return;
+    // Use Firebase displayName if already set, otherwise fetch from DB
+    if (user.displayName) {
+      setDisplayName(user.displayName);
+      return;
+    }
+    api.get("/api/user/stats")
+      .then((data: { displayName?: string | null }) => {
+        if (data.displayName) setDisplayName(data.displayName);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
 
   useEffect(() => {
     if (!user) return;
@@ -122,7 +133,10 @@ export default function SettingsPage() {
     setProfileMsg(null);
     try {
       setSavingProfile(true);
+      // Update Firebase Auth profile
       await updateProfile(user, { displayName: displayName.trim() || null });
+      // Sync to the Prisma DB so server-side queries reflect the new name
+      await api.patch("/api/user/profile", { displayName: displayName.trim() || null });
       setProfileMsg({ type: "ok", text: "Profile updated successfully." });
     } catch (err: any) {
       setProfileMsg({ type: "err", text: err?.message ?? "Failed to update profile." });

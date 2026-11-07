@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     if (!stats) return NextResponse.json({ error: "Stats not found" }, { status: 404 });
 
     return NextResponse.json({
+      displayName: user.displayName ?? null,
       currentStreak: stats.currentStreak,
       longestStreak: stats.longestStreak,
       streakFreezes: stats.streakFreezes,

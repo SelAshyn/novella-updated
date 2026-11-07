@@ -7,7 +7,7 @@ import { ArrowLeft, BookOpen, Eye, EyeOff, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
 import ThemeToggle from "@/components/landing/theme-toggle"
 import { auth } from "@/lib/firebase"
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { FirebaseError } from "firebase/app"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/landing/auth-provider"
@@ -340,7 +340,9 @@ export default function AuthPage() {
       // ── 2. Firebase auth ────────────────────────────────────────────────
       if (isSignUp) {
         const { user: newUser } = await createUserWithEmailAndPassword(auth, email.trim(), password)
-        const token = await newUser.getIdToken()
+        // Save the name to Firebase profile immediately so it's in the ID token
+        await updateProfile(newUser, { displayName: name.trim() })
+        const token = await newUser.getIdToken(/* forceRefresh */ true)
 
         const otpRes = await fetch("/api/auth/send-otp", {
           method: "POST",
