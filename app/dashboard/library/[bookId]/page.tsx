@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Plus, Quote, Trash2, X, BookOpen, Volume2, Bookmark } from "lucide-react";
@@ -26,7 +26,8 @@ interface QuoteItem {
   pageNumber: number;
 }
 
-export default function BookPage({ params }: { params: { bookId: string } }) {
+export default function BookPage({ params }: { params: Promise<{ bookId: string }> }) {
+  const { bookId } = use(params);
   const { user } = useAuth();
   const api = useApi();
 
@@ -56,9 +57,9 @@ export default function BookPage({ params }: { params: { bookId: string } }) {
       try {
         setLoading(true);
         const [bookData, wordsData, quotesData] = await Promise.all([
-          api.get(`/api/books/${params.bookId}`),
-          api.get(`/api/books/${params.bookId}/vocabulary`),
-          api.get(`/api/books/${params.bookId}/quotes`),
+          api.get(`/api/books/${bookId}`),
+          api.get(`/api/books/${bookId}/vocabulary`),
+          api.get(`/api/books/${bookId}/quotes`),
         ]);
         setBook(bookData.book);
         setCurrentPage(String(bookData.book.currentPage));
@@ -71,7 +72,7 @@ export default function BookPage({ params }: { params: { bookId: string } }) {
       }
     }
     load();
-  }, [user, params.bookId]);
+  }, [user, bookId]);
 
   async function saveProgress() {
     if (!book) return;
@@ -91,7 +92,7 @@ export default function BookPage({ params }: { params: { bookId: string } }) {
     try {
       setSavingWord(true);
       const data = await api.post("/api/vocabulary", {
-        bookId: params.bookId,
+        bookId,
         word: wordForm.word,
         ipa: wordForm.ipa || undefined,
         meaning: wordForm.meaning,
@@ -117,7 +118,7 @@ export default function BookPage({ params }: { params: { bookId: string } }) {
     try {
       setSavingQuote(true);
       const data = await api.post("/api/quotes", {
-        bookId: params.bookId,
+        bookId,
         text: quoteForm.text,
         pageNumber: parseInt(quoteForm.pageNumber),
       });

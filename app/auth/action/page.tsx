@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { applyActionCode, checkActionCode } from "firebase/auth"
 import { auth } from "@/lib/firebase"
@@ -9,7 +9,7 @@ import Link from "next/link"
 
 type ActionStatus = "loading" | "success" | "error"
 
-export default function AuthActionPage() {
+function AuthActionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<ActionStatus>("loading")
@@ -28,7 +28,7 @@ export default function AuthActionPage() {
     async function handleAction() {
       try {
         // Check the code first
-        const info = await checkActionCode(auth, oobCode!)
+        await checkActionCode(auth, oobCode!)
 
         if (mode === "verifyEmail") {
           // Apply the email verification code
@@ -65,56 +65,72 @@ export default function AuthActionPage() {
   }, [searchParams, router])
 
   return (
+    <div className="w-full max-w-md text-center">
+      {status === "loading" && (
+        <>
+          <Loader2 className="mx-auto size-16 animate-spin text-muted-foreground" />
+          <h1 className="mt-6 text-2xl font-bold">Verifying your email...</h1>
+          <p className="mt-2 text-muted-foreground">Please wait a moment</p>
+        </>
+      )}
+
+      {status === "success" && (
+        <>
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+            <CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
+          </div>
+          <h1 className="mt-6 text-2xl font-bold">Email verified!</h1>
+          <p className="mt-2 text-muted-foreground">{message}</p>
+          <p className="mt-4 text-sm text-muted-foreground">Redirecting to dashboard...</p>
+        </>
+      )}
+
+      {status === "error" && (
+        <>
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10">
+            <XCircle className="size-8 text-destructive" />
+          </div>
+          <h1 className="mt-6 text-2xl font-bold">Verification failed</h1>
+          <p className="mt-2 text-muted-foreground">{message}</p>
+          <div className="mt-8 space-y-3">
+            <Link
+              href="/auth/verify-email"
+              className="site-button site-button-primary block w-full"
+            >
+              Request new verification email
+            </Link>
+            <Link
+              href="/auth"
+              className="site-button site-button-outline block w-full"
+            >
+              Back to sign in
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+export default function AuthActionPage() {
+  return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-8">
       <Link href="/" className="mb-8 inline-flex items-center gap-2">
         <BookOpen className="size-5" strokeWidth={1.5} />
         <span className="font-serif text-2xl">Novella</span>
       </Link>
 
-      <div className="w-full max-w-md text-center">
-        {status === "loading" && (
-          <>
+      <Suspense
+        fallback={
+          <div className="w-full max-w-md text-center">
             <Loader2 className="mx-auto size-16 animate-spin text-muted-foreground" />
             <h1 className="mt-6 text-2xl font-bold">Verifying your email...</h1>
             <p className="mt-2 text-muted-foreground">Please wait a moment</p>
-          </>
-        )}
-
-        {status === "success" && (
-          <>
-            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-              <CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
-            </div>
-            <h1 className="mt-6 text-2xl font-bold">Email verified!</h1>
-            <p className="mt-2 text-muted-foreground">{message}</p>
-            <p className="mt-4 text-sm text-muted-foreground">Redirecting to dashboard...</p>
-          </>
-        )}
-
-        {status === "error" && (
-          <>
-            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10">
-              <XCircle className="size-8 text-destructive" />
-            </div>
-            <h1 className="mt-6 text-2xl font-bold">Verification failed</h1>
-            <p className="mt-2 text-muted-foreground">{message}</p>
-            <div className="mt-8 space-y-3">
-              <Link
-                href="/auth/verify-email"
-                className="site-button site-button-primary block w-full"
-              >
-                Request new verification email
-              </Link>
-              <Link
-                href="/auth"
-                className="site-button site-button-outline block w-full"
-              >
-                Back to sign in
-              </Link>
-            </div>
-          </>
-        )}
-      </div>
+          </div>
+        }
+      >
+        <AuthActionContent />
+      </Suspense>
     </div>
   )
 }
