@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="264" height="80" viewBox="0 0 264 80" role="img" aria-label="Novella — Reading notebook">
+  <defs>
+    <style>
+      .badge    { fill: #1c1917; }
+      .icon     { stroke: #fbf9f5; }
+      .wordmark { fill: #1c1917; }
+      .sub      { fill: #78716c; }
+      @media (prefers-color-scheme: dark) {
+        .badge    { fill: #f8fafc; }
+        .icon     { stroke: #090d16; }
+        .wordmark { fill: #f8fafc; }
+        .sub      { fill: #a8a29e; }
+      }
+    </style>
+  </defs>
+
+  <!-- ── Icon badge ─────────────────────────────────────────── -->
+  <rect class="badge" width="80" height="80" rx="22"/>
+  <g class="icon"
+     transform="translate(22,22) scale(1.5)"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     fill="none">
+    <path d="M12 5v16"/>
+    <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/>
+  </g>
+
+  <!-- ── Wordmark ───────────────────────────────────────────── -->
+  <!-- "Novella" — font-serif text-[44px] font-bold tracking-tight -->
+  <text class="wordmark"
+        x="98" y="50"
+        font-family="Georgia, 'Times New Roman', Cambria, serif"
+        font-size="44"
+        font-weight="700"
+        letter-spacing="-1">Novella</text>
+
+  <!-- "Reading notebook" — font-mono text-[11px] uppercase tracking-wider -->
+  <text class="sub"
+        x="99" y="66"
+        font-family="'Courier New', 'Lucida Console', monospace"
+        font-size="11"
+        font-weight="400"
+        letter-spacing="2">READING NOTEBOOK</text>
+</svg>

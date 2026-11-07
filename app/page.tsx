@@ -1,19 +1,41 @@
-import { Button } from "@/components/ui/button"
+"use client"
+
+import Hero from "@/components/landing/hero"
+import HowItWorks from "@/components/landing/how-it-works"
+import TheLoop from "@/components/landing/the-loop"
+import WhatsInside from "@/components/landing/whats-inside"
+import BuiltFor from "@/components/landing/built-for"
+import Comparison from "@/components/landing/comparison"
+import ForSchools from "@/components/landing/for-schools"
+import Questions from "@/components/landing/questions"
+import FinalCta from "@/components/landing/final-cta"
+import SectionSnap from "@/components/landing/snap-scroll"
+import Navbar from "@/components/landing/navbar"
+import AuthRedirect from "@/components/landing/auth-redirect"
+import BackToTop from "@/components/landing/back-to-top"
+import CookieConsent from "@/components/landing/cookie-consent"
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
+    <AuthRedirect>
+      <Navbar />
+      <div
+        id="top"
+        className="min-w-0 snap-container"
+      >
+        <SectionSnap />
+        <Hero />
+        <HowItWorks />
+        <TheLoop />
+        <WhatsInside />
+        <BuiltFor />
+        <Comparison />
+        <ForSchools />
+        <Questions />
+        <FinalCta />
       </div>
-    </div>
+      <BackToTop />
+      <CookieConsent />
+    </AuthRedirect>
   )
 }

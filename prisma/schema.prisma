@@ -1,0 +1,263 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String             @id @default(cuid())
+  firebaseUid           String             @unique
+  email                 String             @unique
+  displayName           String?
+  khaltiCustomerId      String?            @unique
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  books                 Book[]
+  vocabularyCards       VocabularyCard[]
+  quotes                Quote[]
+  readingSessions       ReadingSession[]
+  stats                 UserStats?
+  taughtClasses         Class[]         @relation("TeacherClasses")
+  classMembers          ClassMember[]
+  payments              Payment[]
+  reports               Report[]
+
+  @@index([firebaseUid])
+  @@index([khaltiCustomerId])
+}
+
+model Book {
+  id                    String             @id @default(cuid())
+  userId                String
+  title                 String
+  author                String
+  currentPage           Int                @default(0)
+  totalPages            Int
+  dueDate               DateTime?
+  coverImageUrl         String?
+  status                String             @default("READING") // READING, FINISHED, WANT_TO_READ
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabularyCards       VocabularyCard[]
+  quotes                Quote[]
+  readingSessions       ReadingSession[]
+
+  @@index([userId, status])
+  @@index([userId, updatedAt])
+}
+
+model VocabularyCard {
+  id                    String             @id @default(cuid())
+  userId                String
+  bookId                String
+  word                  String
+  ipa                   String?
+  meaning               String
+  example               String
+  pageNumber            Int
+  nextReviewDate        DateTime
+  reviewCount           Int                @default(0)
+  easeFactor            Float              @default(2.5)
+  interval              Int                @default(1)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book                  Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId, nextReviewDate])
+  @@index([bookId])
+}
+
+model Quote {
+  id                    String             @id @default(cuid())
+  userId                String
+  bookId                String
+  text                  String
+  pageNumber            Int
+  createdAt             DateTime           @default(now())
+
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book                  Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([bookId])
+}
+
+model ReadingSession {
+  id                    String             @id @default(cuid())
+  userId                String
+  bookId                String
+  pagesRead             Int
+  wordsAdded            Int                @default(0)
+  quotesAdded           Int                @default(0)
+  date                  DateTime           @default(now())
+
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book                  Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([bookId])
+}
+
+model UserStats {
+  id                      String             @id @default(cuid())
+  userId                  String             @unique
+  currentStreak           Int                @default(0)
+  longestStreak           Int                @default(0)
+  totalBooksRead          Int                @default(0)
+  totalPagesRead          Int                @default(0)
+  totalWordsLearned       Int                @default(0)
+  totalQuotesCollected    Int                @default(0)
+  lastReadDate            DateTime?
+  streakFreezes           Int                @default(1)
+  plan                    String             @default("free") // free, plus, schools
+  theme                   String             @default("light") // light, dark
+  khaltiSubscriptionId    String?            @unique
+  subscriptionEndDate     DateTime?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([khaltiSubscriptionId])
+}
+
+model Class {
+  id          String        @id @default(cuid())
+  name        String
+  subject     String?
+  teacherId   String
+  joinCode    String        @unique @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  teacher     User          @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: Cascade)
+  members     ClassMember[]
+  assignments ClassBook[]
+
+  @@index([teacherId])
+  @@index([joinCode])
+}
+
+model ClassMember {
+  id        String   @id @default(cuid())
+  classId   String
+  userId    String
+  role      String   @default("STUDENT") // STUDENT, TEACHER
+  joinedAt  DateTime @default(now())
+
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, userId])
+  @@index([userId])
+}
+
+model ClassBook {
+  id          String    @id @default(cuid())
+  classId     String
+  title       String
+  author      String
+  coverUrl    String?
+  chapters    String?
+  dueDate     DateTime?
+  wordListId  String?
+  createdAt   DateTime  @default(now())
+
+  class       Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId])
+}
+
+// Payment transaction history
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Payment provider
+  provider        String   // "paypal" | "khalti"
+
+  // Transaction details
+  orderId         String   @unique // PayPal order ID or Khalti pidx
+  amount          Float    // Amount in provider's currency
+  currency        String   // "USD" for PayPal, "NPR" for Khalti
+  status          String   // "pending" | "completed" | "failed" | "refunded" | "disputed"
+
+  // Plan details
+  planType        String   // "plus_monthly" | "plus_yearly"
+  billingInterval String   // "monthly" | "yearly"
+
+  // Payment metadata
+  providerResponse String?  // JSON string of full response from payment provider
+  errorMessage    String?
+
+  // Idempotency
+  idempotencyKey  String   @unique
+
+  // Timestamps
+  paidAt          DateTime?
+  refundedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderId])
+  @@index([idempotencyKey])
+}
+
+model EmailVerificationOTP {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model PasswordResetOTP {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // "glitch" | "feedback" | "feature"
+  title       String
+  description String
+  area        String?  // e.g. "reader", "vocabulary", "review", "library", "class", "settings", "general"
+  severity    String?  // "low" | "medium" | "high" | "critical" (for glitches)
+  deviceInfo  String?
+  status      String   @default("OPEN") // "OPEN", "IN_REVIEW", "RESOLVED"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
