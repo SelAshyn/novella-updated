@@ -7,7 +7,7 @@ import { ArrowLeft, BookOpen, Eye, EyeOff, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
 import ThemeToggle from "@/components/landing/theme-toggle"
 import { auth } from "@/lib/firebase"
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithCustomToken, updatePassword } from "firebase/auth"
 import { FirebaseError } from "firebase/app"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/landing/auth-provider"
@@ -339,20 +339,23 @@ export default function AuthPage() {
 
       // ── 2. Firebase auth ────────────────────────────────────────────────
       if (isSignUp) {
-        const { user: newUser } = await createUserWithEmailAndPassword(auth, email.trim(), password)
-        // Save the name to Firebase profile immediately so it's in the ID token
-        await updateProfile(newUser, { displayName: name.trim() })
-        const token = await newUser.getIdToken(/* forceRefresh */ true)
-
+        // Don't create a Firebase account yet — just send the OTP.
+        // The account will be created in verify-otp after the code is confirmed.
         const otpRes = await fetch("/api/auth/send-otp", {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), name: name.trim(), password }),
         })
+        const otpBody = await otpRes.json().catch(() => ({}))
         if (!otpRes.ok) {
-          const body = await otpRes.json().catch(() => ({}))
-          console.error("[auth] send-otp failed", otpRes.status, body)
+          setFormError(otpBody.error || "Failed to send verification code. Please try again.")
+          turnstileRef.current?.reset()
+          setTurnstileToken(null)
+          return
         }
 
+        // Pass name + password via sessionStorage so verify-email page can finish signup
+        sessionStorage.setItem("novella:pending-signup", JSON.stringify({ name: name.trim(), password }))
         router.push("/auth/verify-email?email=" + encodeURIComponent(email.trim()))
       } else {
         const { user: signedInUser } = await signInWithEmailAndPassword(auth, email.trim(), password)

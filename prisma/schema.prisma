@@ -218,6 +218,18 @@ model Payment {
   @@index([idempotencyKey])
 }
 
+model PendingSignup {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  // bcrypt hash of the password — never stored in plain text
+  passwordHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 model EmailVerificationOTP {
   id        String   @id @default(cuid())
   email     String
