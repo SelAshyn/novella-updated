@@ -17,22 +17,27 @@ interface RateLimitEntry {
 }
 const store = new Map<string, RateLimitEntry>();
 
-// Cache Upstash Redis client so we only init it once
-const upstashRedisClient: Redis | null = (() => {
+// Lazily resolve Upstash Redis client
+let upstashClientCached: Redis | null | undefined = undefined;
+
+function getUpstashClient(): Redis | null {
+  if (upstashClientCached !== undefined) return upstashClientCached;
   const c = getRedis();
-  return c instanceof Redis ? c : null;
-})();
+  upstashClientCached = c instanceof Redis ? c : null;
+  return upstashClientCached;
+}
 
 // Cache Ratelimit instances per limit:windowSeconds pair to reuse scripts and connections
 const ratelimitInstances = new Map<string, Ratelimit>();
 
 function getUpstashLimiter(limit: number, windowSeconds: number): Ratelimit | null {
-  if (!upstashRedisClient) return null;
+  const client = getUpstashClient();
+  if (!client) return null;
   const configKey = `${limit}:${windowSeconds}`;
   let instance = ratelimitInstances.get(configKey);
   if (!instance) {
     instance = new Ratelimit({
-      redis: upstashRedisClient,
+      redis: client,
       limiter: Ratelimit.slidingWindow(limit, `${windowSeconds} s`),
       prefix: `rl:${configKey}`,
     });
@@ -70,7 +75,7 @@ export async function rateLimit(
   windowMs: number
 ): Promise<RateLimitResult> {
   // 1. Upstash Redis path — reuse cached limiter per (limit, windowSeconds) pair.
-  if (upstashRedisClient) {
+  if (getUpstashClient()) {
     try {
       const windowSeconds = Math.max(1, Math.round(windowMs / 1000));
       const limiter = getUpstashLimiter(limit, windowSeconds);

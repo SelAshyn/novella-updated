@@ -31,8 +31,14 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   try {
     const client = getRedis();
     if (!client) return null;
-    const value = (await client.get(key)) as string | null;
-    return value ? (JSON.parse(value) as T) : null;
+    const value = await client.get(key);
+    if (value === null || value === undefined) return null;
+    if (typeof value === "object") return value as T;
+    try {
+      return JSON.parse(value as string) as T;
+    } catch {
+      return value as unknown as T;
+    }
   } catch (err) {
     console.error("Redis GET error:", err);
     return null;
