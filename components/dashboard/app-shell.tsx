@@ -291,8 +291,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
-              <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                {stats?.plan || "Free"} plan
+              <p className="font-sans text-[9px] text-muted-foreground">
+                {user?.email ?? ""}
               </p>
             </div>
           </div>
