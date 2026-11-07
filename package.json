@@ -29,7 +29,7 @@
     "cn": "^0.5.2",
     "date-fns": "^4.4.0",
     "firebase": "^13.2.0",
-    "firebase-admin": "^14.5.0",
+    "firebase-admin": "13.0.2",
     "ioredis": "^6.0.0",
     "lucide-react": "^1.66.0",
     "motion": "^14.9.1",
