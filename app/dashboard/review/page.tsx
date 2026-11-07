@@ -193,11 +193,11 @@ export default function Review() {
 
       {/* Active card */}
       {!done && cards.length > 0 && c && (
-        <div className="max-w-2xl">
+        <div className="max-w-lg ">
           <div className="rounded-3xl border border-border/80 bg-card p-8 sm:p-12 shadow-md transition-all">
             <div className="flex items-center justify-between border-b border-border/60 pb-4">
               <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <BookOpen className="size-3.5 text-amber-500" />
+                <BookOpen className="size-3.2 text-amber-500" />
                 {c.book.title} · p. {c.pageNumber}
               </span>
               <span className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[10px] text-muted-foreground font-semibold">
@@ -205,13 +205,13 @@ export default function Review() {
               </span>
             </div>
 
-            <h2 className="mt-6 font-serif text-5xl sm:text-7xl font-semibold tracking-tight text-foreground">
+            <h2 className="mt-6 font-serif text-4xl sm:text-5xl font-semibold tracking-tight text-foreground">
               {c.word}
             </h2>
 
             {c.ipa && (
               <p className="mt-2 font-mono text-sm text-muted-foreground flex items-center gap-1.5">
-                <Volume2 className="size-3.5 text-amber-500" />
+                <Volume2 className="size-3.2 text-amber-500" />
                 {c.ipa}
               </p>
             )}
@@ -224,13 +224,13 @@ export default function Review() {
                     <p className="font-mono text-[11px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-1">
                       Definition
                     </p>
-                    <p className="font-serif text-2xl font-medium text-foreground leading-snug">
+                    <p className="font-serif text-xl font-medium text-foreground leading-snug">
                       {c.meaning}
                     </p>
                   </div>
 
                   <div className="mt-5 space-y-2.5">
-                    <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
                       Context & Examples
                     </p>
                     <p className="font-sans text-base text-foreground/90 italic leading-relaxed pl-3 border-l-2 border-amber-500/60">

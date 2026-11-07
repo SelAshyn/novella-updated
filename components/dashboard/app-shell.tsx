@@ -58,35 +58,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
 
-  const displayName = user?.displayName || stats?.displayName || user?.email?.split("@")[0] || "User";
+  const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initial = displayName[0].toUpperCase();
 
   useEffect(() => {
     let ignore = false;
     if (!user) return;
 
-    user
-      .getIdToken()
+    user.getIdToken()
       .then((token) =>
         fetch("/api/user/stats", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-firebase-uid": user.uid,
-            "x-firebase-email": user.email ?? "",
-            "x-firebase-name": user.displayName ?? "",
-          },
+          headers: { Authorization: `Bearer ${token}` },
         })
       )
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!ignore && data) setStats(data);
-      })
+      .then((data) => { if (!ignore && data) setStats(data); })
       .catch((err) => console.error("Failed to fetch user stats:", err));
 
-    return () => {
-      ignore = true;
-    };
-  }, [user]);
+    return () => { ignore = true; };
+  }, [user?.uid]); // only re-fetch when user identity changes, not on every render
 
   // Streak state flags
   const gap       = stats?.lastReadDate ? dayGap(stats.lastReadDate) : null;

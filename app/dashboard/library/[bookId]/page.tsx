@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Plus, Quote, Trash2, X, BookOpen, Volume2, Bookmark } from "lucide-react";
+import { AlertCircle, ArrowLeft, Loader2, Plus, Quote, Sparkles, Trash2, Volume2, X, BookOpen, Bookmark } from "lucide-react";
 import { format } from "date-fns";
 
 import { PageTitle } from "@/components/dashboard/app-shell";
@@ -26,6 +26,16 @@ interface QuoteItem {
   pageNumber: number;
 }
 
+interface AIResult {
+  valid: boolean;
+  ipa?: string;
+  meaning?: string;
+  simpleExample?: string;
+  complexExample?: string;
+}
+
+type WordStatus = "idle" | "typing" | "loading" | "filled" | "invalid" | "error";
+
 export default function BookPage({ params }: { params: Promise<{ bookId: string }> }) {
   const { bookId } = use(params);
   const { user } = useAuth();
@@ -43,8 +53,69 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
 
   // Add word modal
   const [showAddWord, setShowAddWord] = useState(false);
-  const [wordForm, setWordForm] = useState({ word: "", ipa: "", meaning: "", example: "", pageNumber: "" });
+  const [wordForm, setWordForm] = useState({ word: "", ipa: "", meaning: "", simpleExample: "", complexExample: "", pageNumber: "" });
   const [savingWord, setSavingWord] = useState(false);
+  const [wordStatus, setWordStatus] = useState<WordStatus>("idle");
+  const [aiErrorMsg, setAiErrorMsg] = useState("");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFetchedWord = useRef("");
+
+  const lookupWord = useCallback(async (word: string) => {
+    const trimmed = word.trim();
+    if (!trimmed || trimmed.length < 2 || !user || !book) return;
+    if (trimmed.toLowerCase() === lastFetchedWord.current) return;
+    setWordStatus("loading");
+    setAiErrorMsg("");
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/ai/lookup-word", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ word: trimmed, bookTitle: book.title, bookAuthor: book.author }),
+      });
+      if (!res.ok) throw new Error("Lookup failed");
+      const data: AIResult = await res.json();
+      if (!data.valid) { setWordStatus("invalid"); return; }
+      lastFetchedWord.current = trimmed.toLowerCase();
+      setWordForm(f => ({
+        ...f,
+        ipa: data.ipa || f.ipa,
+        meaning: data.meaning || f.meaning,
+        simpleExample: data.simpleExample || f.simpleExample,
+        complexExample: data.complexExample || f.complexExample,
+      }));
+      setWordStatus("filled");
+    } catch (err: any) {
+      setWordStatus("error");
+      setAiErrorMsg(err?.message || "Lookup failed.");
+    }
+  }, [user, book]);
+
+  function handleWordChange(val: string) {
+    setWordForm(f => ({ ...f, word: val }));
+    setWordStatus("typing");
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (val.trim().length >= 2) lookupWord(val);
+      else setWordStatus("idle");
+    }, 600);
+  }
+
+  function retryLookup() {
+    lastFetchedWord.current = "";
+    setWordStatus("idle");
+    setAiErrorMsg("");
+    setWordForm(f => ({ ...f, ipa: "", meaning: "", simpleExample: "", complexExample: "" }));
+    if (wordForm.word.trim().length >= 2) setTimeout(() => lookupWord(wordForm.word), 100);
+  }
+
+  function openAddWord() {
+    setWordForm({ word: "", ipa: "", meaning: "", simpleExample: "", complexExample: "", pageNumber: "" });
+    setWordStatus("idle");
+    setAiErrorMsg("");
+    lastFetchedWord.current = "";
+    setShowAddWord(true);
+  }
 
   // Add quote modal
   const [showAddQuote, setShowAddQuote] = useState(false);
@@ -91,16 +162,19 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
     e.preventDefault();
     try {
       setSavingWord(true);
+      const example = [wordForm.simpleExample, wordForm.complexExample].filter(Boolean).join("|||");
       const data = await api.post("/api/vocabulary", {
         bookId,
         word: wordForm.word,
         ipa: wordForm.ipa || undefined,
         meaning: wordForm.meaning,
-        example: wordForm.example,
+        example,
         pageNumber: parseInt(wordForm.pageNumber),
       });
       setWords((prev) => [...prev, data.card]);
-      setWordForm({ word: "", ipa: "", meaning: "", example: "", pageNumber: "" });
+      setWordForm({ word: "", ipa: "", meaning: "", simpleExample: "", complexExample: "", pageNumber: "" });
+      setWordStatus("idle");
+      lastFetchedWord.current = "";
       setShowAddWord(false);
     } finally {
       setSavingWord(false);
@@ -219,7 +293,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
                 <p className="font-sans text-xs text-muted-foreground mt-0.5">{words.length} words saved from this book</p>
               </div>
               <button
-                onClick={() => setShowAddWord(true)}
+                onClick={openAddWord}
                 className="site-button site-button-primary text-xs py-2 px-3.5 min-h-9 inline-flex items-center gap-1.5"
               >
                 <Plus className="size-3.5" /> <span>Add word</span>
@@ -310,43 +384,169 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
       {/* Add Word Modal */}
       {showAddWord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-2xl w-full max-w-md">
-            <div className="mb-6 flex items-center justify-between border-b border-border/60 pb-4">
-              <h3 className="font-serif text-2xl font-medium text-foreground">Add a word</h3>
+          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="mb-6 flex items-start justify-between border-b border-border/60 pb-4">
+              <div>
+                <h3 className="font-serif text-3xl font-medium text-foreground">Add a word</h3>
+                <p className="font-mono text-xs mt-1 flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold">
+                  <Sparkles className="size-3.5" />
+                  AI fills definitions &amp; examples in real-time
+                </p>
+              </div>
               <button
                 onClick={() => setShowAddWord(false)}
                 className="flex size-9 items-center justify-center rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Close"
               >
-                <X className="size-4" />
+                <X className="size-4.5" />
               </button>
             </div>
+
             <form onSubmit={handleAddWord} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-word">Word *</label>
-                  <input id="aw-word" value={wordForm.word} onChange={(e) => setWordForm(f => ({ ...f, word: e.target.value }))} className="h-10 w-full rounded-xl border border-border bg-secondary/30 px-3 font-sans text-sm text-foreground outline-none focus:border-ring" required />
+              {/* Word input */}
+              <div>
+                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-word">
+                  Word *
+                </label>
+                <div className="relative">
+                  <input
+                    id="aw-word"
+                    value={wordForm.word}
+                    onChange={(e) => handleWordChange(e.target.value)}
+                    placeholder="e.g. Ephemeral"
+                    className="h-11 w-full rounded-xl border border-border bg-secondary/30 px-3.5 pr-10 font-sans text-sm text-foreground outline-none focus:border-ring transition-colors font-medium"
+                    required
+                    autoComplete="off"
+                    autoFocus
+                  />
+                  {wordStatus === "loading" && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      <Loader2 className="size-4 animate-spin text-amber-500" />
+                    </div>
+                  )}
+                  {wordStatus === "filled" && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      <Sparkles className="size-4 text-amber-500" />
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-ipa">IPA</label>
-                  <input id="aw-ipa" value={wordForm.ipa} onChange={(e) => setWordForm(f => ({ ...f, ipa: e.target.value }))} className="h-10 w-full rounded-xl border border-border bg-secondary/30 px-3 font-mono text-xs text-foreground outline-none focus:border-ring" />
-                </div>
+
+                {/* Status badge */}
+                {wordStatus === "typing" && (
+                  <p className="font-mono text-xs mt-1.5 flex items-center gap-1.5 text-muted-foreground">
+                    <Sparkles className="size-3 text-amber-500" /> Type a word to auto-populate meaning…
+                  </p>
+                )}
+                {wordStatus === "loading" && (
+                  <p className="font-mono text-xs mt-1.5 flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                    <Loader2 className="size-3 animate-spin" /> Fetching AI details for &ldquo;{wordForm.word}&rdquo;…
+                  </p>
+                )}
+                {wordStatus === "invalid" && (
+                  <p className="font-mono text-xs mt-1.5 flex items-center gap-1.5 text-rose-500">
+                    <AlertCircle className="size-3" /> &ldquo;{wordForm.word}&rdquo; was not found. Check spelling or fill in manually.
+                  </p>
+                )}
+                {wordStatus === "filled" && (
+                  <div className="mt-1.5 flex items-center justify-between text-xs font-mono text-emerald-600 dark:text-emerald-400">
+                    <span className="flex items-center gap-1.5"><Sparkles className="size-3" /> AI auto-fill complete</span>
+                    <button type="button" onClick={retryLookup} className="text-muted-foreground hover:text-foreground underline">Refresh</button>
+                  </div>
+                )}
+                {wordStatus === "error" && (
+                  <div className="mt-1.5 flex items-center justify-between text-xs font-mono text-rose-500">
+                    <span>{aiErrorMsg || "Lookup failed. Fill in manually."}</span>
+                    <button type="button" onClick={retryLookup} className="underline hover:text-foreground">Retry</button>
+                  </div>
+                )}
               </div>
+
+              {/* IPA */}
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-meaning">Meaning *</label>
-                <input id="aw-meaning" value={wordForm.meaning} onChange={(e) => setWordForm(f => ({ ...f, meaning: e.target.value }))} className="h-10 w-full rounded-xl border border-border bg-secondary/30 px-3 font-sans text-sm text-foreground outline-none focus:border-ring" required />
+                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-ipa">
+                  Phonetics (IPA) <span className="opacity-60 font-normal">optional</span>
+                </label>
+                <input
+                  id="aw-ipa"
+                  value={wordForm.ipa}
+                  onChange={(e) => setWordForm(f => ({ ...f, ipa: e.target.value }))}
+                  placeholder="/ɪˈfem(ə)rəl/"
+                  className="h-11 w-full rounded-xl border border-border bg-secondary/30 px-3.5 font-mono text-xs text-foreground outline-none focus:border-ring transition-colors"
+                />
               </div>
+
+              {/* Meaning */}
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-example">Example *</label>
-                <input id="aw-example" value={wordForm.example} onChange={(e) => setWordForm(f => ({ ...f, example: e.target.value }))} className="h-10 w-full rounded-xl border border-border bg-secondary/30 px-3 font-sans text-sm text-foreground outline-none focus:border-ring" required />
+                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-meaning">
+                  Definition *
+                </label>
+                <textarea
+                  id="aw-meaning"
+                  value={wordForm.meaning}
+                  onChange={(e) => setWordForm(f => ({ ...f, meaning: e.target.value }))}
+                  placeholder="Lasting for a very short time; fleeting."
+                  className="w-full rounded-xl border border-border bg-secondary/30 p-3 font-sans text-sm text-foreground outline-none focus:border-ring transition-colors min-h-[4rem]"
+                  required
+                />
               </div>
+
+              {/* Simple example */}
               <div>
-                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-page">Page number *</label>
-                <input id="aw-page" type="number" min={1} value={wordForm.pageNumber} onChange={(e) => setWordForm(f => ({ ...f, pageNumber: e.target.value }))} className="h-10 w-full rounded-xl border border-border bg-secondary/30 px-3 font-sans text-sm text-foreground outline-none focus:border-ring" required />
+                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-simple">
+                  Example sentence *
+                </label>
+                <input
+                  id="aw-simple"
+                  value={wordForm.simpleExample}
+                  onChange={(e) => setWordForm(f => ({ ...f, simpleExample: e.target.value }))}
+                  placeholder="The evening light was ephemeral and soon turned to dusk."
+                  className="h-11 w-full rounded-xl border border-border bg-secondary/30 px-3.5 font-sans text-sm text-foreground outline-none focus:border-ring transition-colors"
+                  required
+                />
               </div>
-              <div className="flex gap-3 pt-3 border-t border-border/60">
-                <button type="submit" disabled={savingWord} className="site-button site-button-primary flex-1 justify-center disabled:opacity-50">{savingWord ? "Saving…" : "Save word"}</button>
-                <button type="button" onClick={() => setShowAddWord(false)} className="site-button site-button-outline px-5">Cancel</button>
+
+              {/* Complex example */}
+              <div>
+                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-complex">
+                  Advanced context <span className="opacity-60 font-normal">optional</span>
+                </label>
+                <input
+                  id="aw-complex"
+                  value={wordForm.complexExample}
+                  onChange={(e) => setWordForm(f => ({ ...f, complexExample: e.target.value }))}
+                  placeholder="Nothing is quite so ephemeral as evening light across a lawn."
+                  className="h-11 w-full rounded-xl border border-border bg-secondary/30 px-3.5 font-sans text-sm text-foreground outline-none focus:border-ring transition-colors"
+                />
+              </div>
+
+              {/* Page number */}
+              <div>
+                <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="aw-page">
+                  Page number *
+                </label>
+                <input
+                  id="aw-page"
+                  type="number"
+                  min={1}
+                  value={wordForm.pageNumber}
+                  onChange={(e) => setWordForm(f => ({ ...f, pageNumber: e.target.value }))}
+                  placeholder="112"
+                  className="h-11 w-full rounded-xl border border-border bg-secondary/30 px-3.5 font-sans text-sm text-foreground outline-none focus:border-ring transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-border/60">
+                <button
+                  type="submit"
+                  disabled={savingWord || wordStatus === "loading"}
+                  className="site-button site-button-primary flex-1 justify-center disabled:opacity-50"
+                >
+                  {savingWord ? "Saving…" : "Save word"}
+                </button>
+                <button type="button" onClick={() => setShowAddWord(false)} className="site-button site-button-outline px-5">
+                  Cancel
+                </button>
               </div>
             </form>
           </div>

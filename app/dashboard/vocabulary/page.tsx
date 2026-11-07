@@ -352,7 +352,7 @@ export default function Vocabulary() {
               <p className="mt-2 text-sm text-muted-foreground">Try searching with a different term or keyword.</p>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-3">
               {filtered.map((card) => {
                 const { simple, complex } = parseExample(card.example);
                 return (
