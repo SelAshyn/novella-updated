@@ -7,7 +7,8 @@ function getPrivateKey(): string {
   const raw = process.env.FIREBASE_PRIVATE_KEY ?? ""
   // Strip surrounding quotes that some .env editors add
   const unquoted = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1) : raw
-  // Convert literal \n to real newlines
+  // Handle both literal \n (from .env files) and real newlines (from Vercel UI paste)
+  // If the key already has real newlines, the replace is a no-op.
   return unquoted.replace(/\\n/g, "\n")
 }
 
