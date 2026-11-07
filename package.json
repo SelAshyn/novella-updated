@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.3",
-    "@neondatabase/serverless": "1.2.0",
+    "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "5.22.0",
     "@prisma/client": "^5.22.0",
     "@sentry/nextjs": "^11.11.0",
