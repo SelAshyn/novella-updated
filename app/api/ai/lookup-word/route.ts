@@ -36,8 +36,9 @@ function emitLookupLog(
     attributes,
   });
 
+  const provider = loggerProvider;
   after(async () => {
-    await loggerProvider.forceFlush().catch(() => undefined);
+    await provider.forceFlush().catch(() => undefined);
   });
 }
 
