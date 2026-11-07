@@ -84,7 +84,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Daily Review Hero Card */}
         <section
           className="relative overflow-hidden rounded-3xl border border-border/80 bg-primary p-8 sm:p-10 text-primary-foreground shadow-lg lg:col-span-2 flex flex-col justify-between"
@@ -337,7 +337,7 @@ export default function Dashboard() {
               >
                 <div>
                   <Quote className="size-4 text-amber-500/80 mb-2" />
-                  <blockquote className="font-serif text-xl sm:text-2xl leading-relaxed text-foreground">
+                  <blockquote className="font-serif text-lg sm:text-xl md:text-2xl leading-relaxed text-foreground">
                     &ldquo;{q.text}&rdquo;
                   </blockquote>
                 </div>

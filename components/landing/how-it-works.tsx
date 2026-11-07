@@ -4,7 +4,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="how-it-works flex h-dvh w-full items-center justify-center bg-background px-6 py-6 sm:px-12"
+      className="how-it-works flex min-h-dvh w-full items-center justify-center bg-background px-6 py-12 sm:px-12"
     >
       <div className="section-content flex w-full max-w-5xl flex-col">
         {/* Intro */}
@@ -24,7 +24,7 @@ export default function HowItWorks() {
         </div>
 
         {/* 3 Problem Cards */}
-        <div className="mt-8 grid w-full grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="mt-8 grid w-full grid-cols-1 gap-4 md:grid-cols-3">
           {/* Card 1 */}
           <div className="group relative flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-6 sm:p-7 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/40 hover:shadow-md">
             <div>

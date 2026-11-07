@@ -88,7 +88,7 @@ export default function Library() {
 
   return (
     <>
-      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-10 flex items-end justify-between gap-4">
         <PageTitle kicker={usageText}>
           Your <span className="marker">library</span>
         </PageTitle>
@@ -113,7 +113,7 @@ export default function Library() {
       )}
 
       {books.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border/80 bg-card/60 p-16 text-center">
+        <div className="rounded-3xl border border-dashed border-border/80 bg-card/60 p-8 sm:p-16 text-center">
           <div className="flex size-14 mx-auto items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-4">
             <BookOpen className="size-7" />
           </div>
@@ -132,7 +132,7 @@ export default function Library() {
       ) : (
         <div className="rounded-3xl border border-border/80 bg-card overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[640px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-border bg-secondary/50 font-mono text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="p-4 sm:p-5">Book</th>
@@ -262,7 +262,7 @@ export default function Library() {
       {/* Add Book Modal */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="mb-6 flex items-center justify-between border-b border-border/60 pb-4">
               <div>
                 <h3 className="font-serif text-3xl font-medium text-foreground">Add a book</h3>
@@ -313,7 +313,7 @@ export default function Library() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block mb-1 font-semibold" htmlFor="pages">
                     Total pages *

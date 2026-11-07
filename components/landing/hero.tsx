@@ -14,12 +14,12 @@ export default function Hero() {
   }
 
   return (
-    <section id="hero" className="hero-section relative flex h-dvh w-full flex-col items-center justify-center bg-background px-6 py-8 text-center sm:px-12">
+    <section id="hero" className="hero-section relative flex min-h-dvh w-full flex-col items-center justify-center bg-background px-6 py-12 text-center sm:px-12">
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center section-content">
-        
+
 
         {/* Headline */}
-        <h1 className="font-serif text-4xl font-medium tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.08] max-w-3xl">
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.08] max-w-3xl">
           Read deeply.{" "}
           <span className="relative inline-block">
             <span className="marker text-foreground">Remember</span>
@@ -55,12 +55,12 @@ export default function Hero() {
             <BookMarked className="size-3.5 text-amber-500" />
             Physical books, Kindle &amp; PDFs
           </span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span className="flex items-center gap-1.5">
             <Sparkles className="size-3.5 text-amber-500" />
             Zero manual flashcard creation
           </span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>3 minutes daily review</span>
         </div>
 

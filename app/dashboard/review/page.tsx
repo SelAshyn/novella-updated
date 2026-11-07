@@ -152,7 +152,7 @@ export default function Review() {
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
             No words are due for review right now. Add new vocabulary while reading, or explore your library.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/dashboard/vocabulary"
               className="site-button site-button-primary"
@@ -179,7 +179,7 @@ export default function Review() {
           <p className="mt-2 text-sm text-muted-foreground">
             You reviewed {cards.length} word{cards.length !== 1 ? 's' : ''} today. Your streak is protected.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/dashboard"
               className="site-button site-button-primary"
@@ -205,7 +205,7 @@ export default function Review() {
               </span>
             </div>
 
-            <h2 className="mt-6 font-serif text-4xl sm:text-5xl font-semibold tracking-tight text-foreground">
+            <h2 className="mt-6 font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-foreground">
               {c.word}
             </h2>
 

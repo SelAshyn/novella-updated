@@ -43,7 +43,7 @@ export default function Comparison() {
   return (
     <section
       id="comparison"
-      className="comparison flex h-dvh w-full items-center justify-center bg-background px-6 py-6 sm:px-12"
+      className="comparison flex min-h-dvh w-full items-center justify-center bg-background px-6 py-12 sm:px-12"
     >
       <div className="section-content w-full max-w-5xl">
         {/* Intro */}
@@ -63,46 +63,46 @@ export default function Comparison() {
 
         {/* Matrix Table */}
         <div className="mt-7 overflow-x-auto rounded-2xl border border-border/80 bg-card shadow-sm">
-          <table className="w-full min-w-[40rem] border-collapse text-left">
+          <table className="w-full min-w-[36rem] border-collapse text-left">
             <thead>
               <tr className="border-b border-border/80 bg-secondary/40">
-                <th scope="col" className="p-4 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-1/4">
-                  Feature / Capability
+                <th scope="col" className="sticky left-0 z-10 bg-secondary/40 p-4 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-[35%]">
+                  Feature
                 </th>
-                <th scope="col" className="p-4 text-center font-serif text-base font-medium text-foreground w-1/4">
-                  Flashcard Apps
-                  <span className="block font-mono text-[10px] text-muted-foreground font-normal mt-0.5">e.g. Anki</span>
-                </th>
-                <th scope="col" className="p-4 text-center font-serif text-base font-medium text-foreground w-1/4">
-                  Highlight Tools
-                  <span className="block font-mono text-[10px] text-muted-foreground font-normal mt-0.5">e.g. Readwise</span>
-                </th>
-                <th scope="col" className="p-4 text-center font-serif text-base font-semibold text-foreground w-1/4 bg-amber-500/10 border-x-2 border-t-2 border-amber-500/30 rounded-t-xl">
+                <th scope="col" className="p-4 text-center font-serif text-base font-semibold text-foreground w-[25%] bg-amber-500/10 border-x-2 border-t-2 border-amber-500/30 rounded-t-xl">
                   <div className="flex items-center justify-center gap-1.5 text-amber-600 dark:text-amber-400">
                     <Sparkles className="size-3.5" />
                     <span>Novella</span>
                   </div>
                   <span className="block font-mono text-[10px] text-muted-foreground font-normal mt-0.5">Reading Notebook</span>
                 </th>
+                <th scope="col" className="p-4 text-center font-serif text-base font-medium text-foreground w-[20%]">
+                  Flashcard Apps
+                  <span className="block font-mono text-[10px] text-muted-foreground font-normal mt-0.5">e.g. Anki</span>
+                </th>
+                <th scope="col" className="p-4 text-center font-serif text-base font-medium text-foreground w-[20%]">
+                  Highlight Tools
+                  <span className="block font-mono text-[10px] text-muted-foreground font-normal mt-0.5">e.g. Readwise</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {rows.map((row, index) => (
                 <tr key={row.feature} className={index % 2 === 0 ? "bg-card" : "bg-secondary/20"}>
-                  <th scope="row" className="p-3.5 font-sans text-xs sm:text-sm font-medium text-foreground">
+                  <th scope="row" className="sticky left-0 z-10 p-3.5 font-sans text-xs sm:text-sm font-medium text-foreground bg-inherit">
                     {row.feature}
                   </th>
+                  <td className="p-3.5 text-center font-sans text-xs sm:text-sm font-semibold text-foreground bg-amber-500/5 border-x-2 border-amber-500/30">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <Check className="size-4 text-amber-500 shrink-0" />
+                      <span className="hidden sm:inline">{row.novella}</span>
+                    </div>
+                  </td>
                   <td className="p-3.5 text-center font-sans text-xs sm:text-sm text-muted-foreground">
                     {row.flashcards}
                   </td>
                   <td className="p-3.5 text-center font-sans text-xs sm:text-sm text-muted-foreground">
                     {row.highlights}
-                  </td>
-                  <td className="p-3.5 text-center font-sans text-xs sm:text-sm font-semibold text-foreground bg-amber-500/5 border-x-2 border-amber-500/30">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <Check className="size-4 text-amber-500 shrink-0" />
-                      <span>{row.novella}</span>
-                    </div>
                   </td>
                 </tr>
               ))}

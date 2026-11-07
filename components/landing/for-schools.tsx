@@ -13,7 +13,7 @@ export default function ForSchools() {
   return (
     <section
       id="for-schools"
-      className="for-schools flex h-dvh w-full items-center justify-center bg-secondary/50 text-foreground px-6 py-6 sm:px-12"
+      className="for-schools for-schools flex min-h-dvh w-full items-center justify-center bg-secondary/50 text-foreground px-6 py-12 sm:px-12"
     >
       <div className="section-content grid w-full max-w-5xl items-center gap-10 lg:grid-cols-2">
         {/* Interactive Classroom Mockup */}

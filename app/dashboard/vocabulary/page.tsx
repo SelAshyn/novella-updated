@@ -352,7 +352,7 @@ export default function Vocabulary() {
               <p className="mt-2 text-sm text-muted-foreground">Try searching with a different term or keyword.</p>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((card) => {
                 const { simple, complex } = parseExample(card.example);
                 return (
@@ -363,7 +363,7 @@ export default function Vocabulary() {
                     <div>
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+                          <h3 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-foreground break-words">
                             {card.word}
                           </h3>
                           {card.ipa && (
@@ -419,7 +419,7 @@ export default function Vocabulary() {
       {/* ── Add Word Modal ──────────────────────────────────────────────── */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="mb-6 flex items-start justify-between border-b border-border/60 pb-4">
               <div>
                 <h3 className="font-serif text-3xl font-medium text-foreground">Add vocabulary</h3>

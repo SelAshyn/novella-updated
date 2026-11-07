@@ -365,8 +365,8 @@ export default function SettingsPage() {
                     : "border-border bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
-                <Sun className="size-4.5 text-amber-500" />
-                <span>Light Linen</span>
+                <Sun className="size-4.5 text-amber-500 shrink-0" />
+                <span><span className="hidden sm:inline">Light </span>Linen</span>
               </button>
               <button
                 type="button"
@@ -377,8 +377,8 @@ export default function SettingsPage() {
                     : "border-border bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}
               >
-                <Moon className="size-4.5 text-amber-400" />
-                <span>Midnight Obsidian</span>
+                <Moon className="size-4.5 text-amber-400 shrink-0" />
+                <span><span className="hidden sm:inline">Midnight </span>Dark</span>
               </button>
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="site-button site-button-outline inline-flex items-center gap-2 mt-6 text-destructive hover:border-destructive/40 hover:bg-destructive/10"
+              className="site-button site-button-outline w-full sm:w-auto inline-flex items-center gap-2 mt-6 text-destructive hover:border-destructive/40 hover:bg-destructive/10"
             >
               <LogOut className="size-4" />
               <span>Sign out of Novella</span>

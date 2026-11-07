@@ -240,7 +240,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
       <PageTitle kicker={book.author}>{book.title}</PageTitle>
 
       {/* Metrics Row */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           ["Reading Progress", `${pct}%`],
           ["Page", `${book.currentPage} / ${book.totalPages}`],
@@ -289,7 +289,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
           <div>
             <div className="mb-6 flex items-center justify-between border-b border-border/60 pb-4">
               <div>
-                <h2 className="font-serif text-2xl font-medium text-foreground">Saved Words</h2>
+                <h2 className="font-serif text-xl sm:text-2xl font-medium text-foreground">Saved Words</h2>
                 <p className="font-sans text-xs text-muted-foreground mt-0.5">{words.length} words saved from this book</p>
               </div>
               <button
@@ -339,7 +339,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
           <div>
             <div className="mb-6 flex items-center justify-between border-b border-border/60 pb-4">
               <div>
-                <h2 className="font-serif text-2xl font-medium text-foreground">Notable Quotes</h2>
+                <h2 className="font-serif text-xl sm:text-2xl font-medium text-foreground">Notable Quotes</h2>
                 <p className="font-sans text-xs text-muted-foreground mt-0.5">{quotes.length} passages collected</p>
               </div>
               <button
@@ -367,7 +367,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
                       <span>Page {q.pageNumber}</span>
                       <button
                         onClick={() => handleDeleteQuote(q.id)}
-                        className="flex size-6 items-center justify-center rounded text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="flex size-6 items-center justify-center rounded text-muted-foreground hover:text-destructive opacity-60 group-hover:opacity-100 transition-opacity"
                         aria-label="Delete quote"
                       >
                         <Trash2 className="size-3.5" />
@@ -384,7 +384,7 @@ export default function BookPage({ params }: { params: Promise<{ bookId: string 
       {/* Add Word Modal */}
       {showAddWord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="rounded-3xl border border-border/80 bg-card p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-8 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="mb-6 flex items-start justify-between border-b border-border/60 pb-4">
               <div>
                 <h3 className="font-serif text-3xl font-medium text-foreground">Add a word</h3>
