@@ -20,18 +20,34 @@ export async function requireAuth(request: NextRequest) {
   try {
     const decoded = await auth.verifyIdToken(authHeader.substring(7));
 
-    // Look up or create the user scoped to the verified UID only
-    const existing = await prisma.user.findUnique({
+    // Look up user by firebaseUid
+    let user = await prisma.user.findUnique({
       where: { firebaseUid: decoded.uid },
       include: { stats: true },
     });
-    if (existing) return existing;
+    if (user) return user;
+
+    // If not found by UID, check if a user with this email already exists
+    if (decoded.email) {
+      user = await prisma.user.findUnique({
+        where: { email: decoded.email },
+        include: { stats: true },
+      });
+      if (user) {
+        // Link the existing user to this firebaseUid
+        return await prisma.user.update({
+          where: { id: user.id },
+          data: { firebaseUid: decoded.uid },
+          include: { stats: true },
+        });
+      }
+    }
 
     // First login — provision the account
-    return prisma.user.create({
+    return await prisma.user.create({
       data: {
         firebaseUid: decoded.uid,
-        email: decoded.email ?? "",
+        email: decoded.email ?? `${decoded.uid}@novella.app`,
         displayName: decoded.name ?? null,
         stats: {
           create: {
@@ -47,7 +63,8 @@ export async function requireAuth(request: NextRequest) {
       },
       include: { stats: true },
     });
-  } catch {
+  } catch (err) {
+    console.error("[requireAuth] Error authenticating request:", err);
     return null;
   }
 }
