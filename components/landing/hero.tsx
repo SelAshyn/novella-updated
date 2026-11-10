@@ -14,7 +14,7 @@ export default function Hero() {
   }
 
   return (
-    <section id="hero" className="hero-section relative flex min-h-dvh w-full flex-col items-center justify-center bg-background px-6 py-12 text-center sm:px-12">
+    <section id="hero" className="hero-section relative flex min-h-dvh h-auto w-full flex-col items-center justify-center bg-background px-4 py-12 text-center sm:px-12">
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center section-content">
 
 

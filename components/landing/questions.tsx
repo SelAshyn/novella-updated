@@ -32,7 +32,7 @@ export default function Questions() {
   return (
     <section
       id="questions"
-      className="questions flex h-dvh w-full items-center justify-center bg-secondary/40 px-6 py-6 text-foreground sm:px-12"
+      className="questions flex min-h-dvh h-auto w-full items-center justify-center bg-secondary/40 px-4 py-12 text-foreground sm:px-12"
     >
       <div className="section-content w-full max-w-3xl">
         {/* Intro */}

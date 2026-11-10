@@ -7,7 +7,7 @@ import { ArrowLeft, BookOpen, Eye, EyeOff, Sparkles } from "lucide-react"
 import { useTheme } from "next-themes"
 import ThemeToggle from "@/components/landing/theme-toggle"
 import { auth } from "@/lib/firebase"
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithCustomToken, updatePassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithCustomToken, updatePassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth"
 import { FirebaseError } from "firebase/app"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/landing/auth-provider"
@@ -388,30 +388,23 @@ export default function AuthPage() {
     }
   }
 
-  async function handleSocialSignIn(provider: "google" | "apple") {
+  async function handleGoogleSignIn() {
     if (socialAuthPending) return
 
     setSocialAuthPending(true)
     setFormError("")
 
     try {
-      let authProvider
-      if (provider === "google") {
-        authProvider = new GoogleAuthProvider()
-        authProvider.setCustomParameters({
-          prompt: "select_account",
-        })
-      } else {
-        authProvider = new OAuthProvider("apple.com")
-        authProvider.addScope("email")
-        authProvider.addScope("name")
-      }
+      const authProvider = new GoogleAuthProvider()
+      authProvider.setCustomParameters({
+        prompt: "select_account",
+      })
 
       const result = await signInWithPopup(auth, authProvider)
       const user = result.user
 
       // Track the sign-in
-      posthog.capture("user_signed_in", { method: provider })
+      posthog.capture("user_signed_in", { method: "google" })
 
       // Redirect to dashboard
       router.push("/dashboard")
@@ -428,10 +421,10 @@ export default function AuthPage() {
       } else if (code === "auth/popup-blocked") {
         setFormError("Pop-up was blocked by your browser. Please allow pop-ups and try again.")
       } else {
-        setFormError("Failed to sign in. Please try again.")
+        setFormError("Failed to sign in with Google. Please try again.")
       }
 
-      console.error("[auth] Social sign-in error:", error)
+      console.error("[auth] Google sign-in error:", error)
     } finally {
       setSocialAuthPending(false)
     }
@@ -515,10 +508,10 @@ export default function AuthPage() {
           </p>
 
           {/* Social Sign-In Buttons */}
-          <div className="mt-8 space-y-3">
+          <div className="mt-8">
             <button
               type="button"
-              onClick={() => handleSocialSignIn("google")}
+              onClick={handleGoogleSignIn}
               disabled={socialAuthPending || pending}
               className="site-button site-button-outline w-full rounded-xl py-2.5 text-sm font-medium disabled:opacity-60 transition-all cursor-pointer flex items-center justify-center gap-3"
             >
@@ -541,18 +534,6 @@ export default function AuthPage() {
                 />
               </svg>
               <span>Continue with Google</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSocialSignIn("apple")}
-              disabled={socialAuthPending || pending}
-              className="site-button site-button-outline w-full rounded-xl py-2.5 text-sm font-medium disabled:opacity-60 transition-all cursor-pointer flex items-center justify-center gap-3"
-            >
-              <svg className="size-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-              </svg>
-              <span>Continue with Apple</span>
             </button>
           </div>
 

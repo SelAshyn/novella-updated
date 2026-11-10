@@ -22,7 +22,7 @@ export default function FinalCta() {
   return (
     <footer
       id="final-cta"
-      className="final-cta flex min-h-dvh w-full items-center justify-center bg-card text-foreground px-6 py-12 sm:px-12 border-t border-border"
+      className="final-cta flex min-h-dvh h-auto w-full items-center justify-center bg-card text-foreground px-4 py-12 sm:px-12 border-t border-border"
     >
       <div className="section-content mx-auto w-full max-w-4xl">
         {/* Highlight CTA Box */}

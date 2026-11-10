@@ -100,7 +100,7 @@ function NavbarContent() {
     }
 
     function onScroll() {
-      const scrollY = container!.scrollTop
+      const scrollY = container && container.scrollTop > 0 ? container.scrollTop : window.scrollY
       setScrolled(scrollY > 20)
       if (!state.isAnimating) {
         setIsVisible(!(scrollY > state.lastY && scrollY > 100 && state.pointerY > 100))
@@ -114,11 +114,13 @@ function NavbarContent() {
       if (e.clientY < 100) setIsVisible(true)
     }
 
+    window.addEventListener("scroll", onScroll, { passive: true })
     container.addEventListener("scroll", onScroll, { passive: true })
     document.addEventListener("pointermove", onPointerMove, { passive: true })
     detectActiveSection()
 
     return () => {
+      window.removeEventListener("scroll", onScroll)
       container.removeEventListener("scroll", onScroll)
       document.removeEventListener("pointermove", onPointerMove)
       if (state.hideTimer) clearTimeout(state.hideTimer)

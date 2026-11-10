@@ -31,7 +31,7 @@ export default function TheLoop() {
   return (
     <section
       id="the-loop"
-      className="the-loop flex h-dvh w-full items-center justify-center bg-secondary/50 text-foreground px-6 py-6 sm:px-12"
+      className="the-loop flex min-h-dvh h-auto w-full items-center justify-center bg-secondary/50 text-foreground px-4 py-12 sm:px-12"
     >
       <div className="section-content w-full max-w-5xl">
         {/* Intro */}

@@ -34,7 +34,7 @@ export default function BuiltFor() {
   return (
     <section
       id="built-for"
-      className="built-for flex h-dvh w-full items-center justify-center bg-secondary/40 text-foreground px-6 py-6 sm:px-12"
+      className="built-for flex min-h-dvh h-auto w-full items-center justify-center bg-secondary/40 text-foreground px-4 py-12 sm:px-12"
     >
       <div className="section-content w-full max-w-5xl">
         {/* Intro */}

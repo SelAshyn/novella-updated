@@ -56,7 +56,7 @@ export default function WhatsInside() {
   return (
     <section
       id="features"
-      className="whats-inside flex min-h-dvh w-full items-center justify-center bg-background px-6 py-12 sm:px-12"
+      className="whats-inside flex min-h-dvh h-auto w-full items-center justify-center bg-background px-4 py-12 sm:px-12"
     >
       <div className="section-content w-full max-w-5xl">
         {/* Intro */}

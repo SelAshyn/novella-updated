@@ -61,12 +61,17 @@ export default function Comparison() {
           </p>
         </div>
 
+        {/* Mobile swipe hint */}
+        <div className="flex items-center justify-end gap-1.5 text-[11px] font-mono text-muted-foreground sm:hidden mb-1.5">
+          <span>Swipe to compare →</span>
+        </div>
+
         {/* Matrix Table */}
-        <div className="mt-7 overflow-x-auto rounded-2xl border border-border/80 bg-card shadow-sm">
-          <table className="w-full min-w-[36rem] border-collapse text-left">
+        <div className="mt-4 sm:mt-7 overflow-x-auto rounded-2xl border border-border/80 bg-card shadow-sm">
+          <table className="w-full min-w-[34rem] border-collapse text-left">
             <thead>
               <tr className="border-b border-border/80 bg-secondary/40">
-                <th scope="col" className="sticky left-0 z-10 bg-secondary/40 p-4 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-[35%]">
+                <th scope="col" className="sticky left-0 z-10 bg-secondary/90 backdrop-blur-md p-4 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-[35%]">
                   Feature
                 </th>
                 <th scope="col" className="p-4 text-center font-serif text-base font-semibold text-foreground w-[25%] bg-amber-500/10 border-x-2 border-t-2 border-amber-500/30 rounded-t-xl">
@@ -89,7 +94,7 @@ export default function Comparison() {
             <tbody className="divide-y divide-border/60">
               {rows.map((row, index) => (
                 <tr key={row.feature} className={index % 2 === 0 ? "bg-card" : "bg-secondary/20"}>
-                  <th scope="row" className="sticky left-0 z-10 p-3.5 font-sans text-xs sm:text-sm font-medium text-foreground bg-inherit">
+                  <th scope="row" className="sticky left-0 z-10 p-3.5 font-sans text-xs sm:text-sm font-medium text-foreground bg-card shadow-[2px_0_5px_rgba(0,0,0,0.03)]">
                     {row.feature}
                   </th>
                   <td className="p-3.5 text-center font-sans text-xs sm:text-sm font-semibold text-foreground bg-amber-500/5 border-x-2 border-amber-500/30">

@@ -134,7 +134,13 @@ export default function SectionSnap() {
 
     initialSections.forEach((sec) => observer.observe(sec))
 
+    function isDesktopSnapping(): boolean {
+      return typeof window !== "undefined" && window.innerWidth >= 1024 && window.innerHeight >= 700
+    }
+
     function handleWheel(e: WheelEvent) {
+      if (!isDesktopSnapping()) return
+
       if (
         e.defaultPrevented ||
         e.ctrlKey ||
@@ -173,7 +179,7 @@ export default function SectionSnap() {
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-      if (isTypingTarget(e.target)) return
+      if (!isDesktopSnapping() || isTypingTarget(e.target)) return
       const sections = getSections()
       if (sections.length === 0) return
       const current = currentIndex(sections)
@@ -187,24 +193,8 @@ export default function SectionSnap() {
       }
     }
 
-    let touchStartY = 0
-    function handleTouchStart(e: TouchEvent) {
-      touchStartY = e.touches[0].clientY
-    }
-
-    function handleTouchEnd(e: TouchEvent) {
-      if (locked) return
-      const dy = touchStartY - e.changedTouches[0].clientY
-      if (Math.abs(dy) < 40) return
-      const sections = getSections()
-      const current = currentIndex(sections)
-      goTo(dy > 0 ? current + 1 : current - 1, sections)
-    }
-
     window.addEventListener("wheel", handleWheel, { passive: false })
     window.addEventListener("keydown", handleKeyDown)
-    window.addEventListener("touchstart", handleTouchStart, { passive: true })
-    window.addEventListener("touchend", handleTouchEnd, { passive: true })
 
     return () => {
       observer.disconnect()
@@ -212,8 +202,6 @@ export default function SectionSnap() {
       window.clearTimeout(lockTimer)
       window.removeEventListener("wheel", handleWheel)
       window.removeEventListener("keydown", handleKeyDown)
-      window.removeEventListener("touchstart", handleTouchStart)
-      window.removeEventListener("touchend", handleTouchEnd)
     }
   }, [])
 

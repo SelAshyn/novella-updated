@@ -4,7 +4,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="how-it-works flex min-h-dvh w-full items-center justify-center bg-background px-6 py-12 sm:px-12"
+      className="how-it-works flex min-h-dvh h-auto w-full items-center justify-center bg-background px-4 py-12 sm:px-12"
     >
       <div className="section-content flex w-full max-w-5xl flex-col">
         {/* Intro */}
