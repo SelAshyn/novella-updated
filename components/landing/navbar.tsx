@@ -178,6 +178,10 @@ function NavbarContent() {
           {/* Right: theme + CTA + hamburger */}
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle />
+            <a href="/auth#create" className="site-button site-button-primary group hidden md:inline-flex">
+              <span>Get started free</span>
+              <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </a>
             <button onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
