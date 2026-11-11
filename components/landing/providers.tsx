@@ -1,11 +1,29 @@
 "use client"
 
+import { useEffect } from "react"
 import { ThemeProvider } from "next-themes"
 import CookieConsent from "@/components/landing/cookie-consent"
 import BackToTop from "@/components/landing/back-to-top"
 import { AuthProvider } from "@/components/landing/auth-provider"
+import posthog from "posthog-js"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    const posthogKey =
+      process.env.NEXT_PUBLIC_POSTHOG_KEY ||
+      process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+    const posthogHost =
+      process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
+
+    if (posthogKey && typeof window !== "undefined") {
+      posthog.init(posthogKey, {
+        api_host: posthogHost,
+        capture_pageview: true,
+        capture_pageleave: true,
+      })
+    }
+  }, [])
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <AuthProvider>

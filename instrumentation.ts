@@ -2,7 +2,9 @@ import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { LoggerProvider, BatchLogRecordProcessor } from "@opentelemetry/sdk-logs";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 
-const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+const projectToken =
+  process.env.NEXT_PUBLIC_POSTHOG_KEY ||
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
 export const loggerProvider = projectToken && posthogHost

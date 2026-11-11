@@ -1,6 +1,8 @@
 import posthog from "posthog-js"
 
-const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+const projectToken =
+  process.env.NEXT_PUBLIC_POSTHOG_KEY ||
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
 const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
 const isPostHogConfigured = Boolean(projectToken && host)
 
