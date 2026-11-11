@@ -21,7 +21,7 @@ export default function Hero() {
         {/* Headline */}
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.08] max-w-3xl">
           Read deeply.{" "}
-          <span className="relative inline-block">
+          <span className="relative inline">
             <span className="marker text-foreground">Remember</span>
           </span>{" "}
           what you read.
